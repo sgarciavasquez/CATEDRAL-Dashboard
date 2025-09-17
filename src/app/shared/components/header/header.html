@@ -6,15 +6,23 @@
 
     <div class="flex-1"></div>
 
-    <input
-      class="rounded px-3 py-2 text-stone-900 w-64"
-      placeholder="Buscar perfumes..."
-      type="search"
-      />
+    <input class="rounded px-3 py-2 text-stone-900 w-64" placeholder="Buscar perfumes..." type="search" />
 
     <nav class="flex items-center gap-3 text-sm">
-      <a routerLink="/auth/login" class="underline">Ingresar</a>
-      <a routerLink="/auth/register" class="underline">Registrarse</a>
+      <ng-container *ngIf="(user$ | async) as u; else guest">
+        <span class="opacity-80">Hola, {{ u.name }}</span>
+        <button class="underline" (click)="logout()">Salir</button>
+      </ng-container>
+      <ng-template #guest>
+        <a routerLink="/auth/login" class="underline">Ingresar</a>
+        <a routerLink="/auth/register" class="underline">Registrarse</a>
+      </ng-template>
+
+      <a routerLink="/cart" class="relative rounded bg-stone-800 px-3 py-2">
+        Carrito
+        <span class="absolute -top-2 -right-2 text-xs rounded-full bg-amber-500 text-black px-2 py-[2px]"
+          *ngIf="(count$ | async) as count">{{ count }}</span>
+      </a>
     </nav>
   </div>
 </header>

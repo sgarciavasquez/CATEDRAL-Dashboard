@@ -1,0 +1,57 @@
+<app-header></app-header>
+
+<main class="container-7xl py-8">
+  <div class="mx-auto max-w-md bg-white rounded-2xl shadow p-6">
+    <h1 class="text-xl font-semibold mb-4">Crear cuenta</h1>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="grid gap-4">
+      <label class="grid gap-1">
+        <span class="text-sm">Nombre</span>
+        <input type="text" formControlName="name" class="rounded border px-3 py-2" />
+        <small class="text-red-600" *ngIf="form.controls.name.touched && form.controls.name.invalid">
+          Ingresa tu nombre (mín. 2).
+        </small>
+      </label>
+
+      <label class="grid gap-1">
+        <span class="text-sm">Correo</span>
+        <input type="email" formControlName="email" class="rounded border px-3 py-2" />
+        <small class="text-red-600" *ngIf="form.controls.email.touched && form.controls.email.invalid">
+          Correo inválido.
+        </small>
+      </label>
+
+      <div formGroupName="passwords" class="grid gap-4">
+        <label class="grid gap-1">
+          <span class="text-sm">Contraseña</span>
+          <div class="flex gap-2">
+            <input [type]="showPwd ? 'text' : 'password'" formControlName="password"
+                   class="rounded border px-3 py-2 flex-1" />
+            <button type="button" class="rounded px-3 border" (click)="showPwd = !showPwd">
+              {{ showPwd ? 'Ocultar' : 'Ver' }}
+            </button>
+          </div>
+          <small class="text-red-600" *ngIf="form.get('passwords.password')?.touched && form.get('passwords.password')?.invalid">
+            Mínimo 6 caracteres.
+          </small>
+        </label>
+
+        <label class="grid gap-1">
+          <span class="text-sm">Confirmar contraseña</span>
+          <input [type]="showPwd ? 'text' : 'password'" formControlName="confirm" class="rounded border px-3 py-2" />
+          <small class="text-red-600"
+                 *ngIf="form.get('passwords')?.touched && form.get('passwords')?.errors?.['mismatch']">
+            Las contraseñas no coinciden.
+          </small>
+        </label>
+      </div>
+
+      <button class="rounded-xl bg-stone-900 text-white py-2">Crear cuenta</button>
+      <div *ngIf="error" class="text-red-600 text-sm">{{ error }}</div>
+
+      <div class="text-sm text-stone-600">
+        ¿Ya tienes cuenta? <a routerLink="/auth/login" class="underline">Ingresar</a>
+      </div>
+    </form>
+  </div>
+</main>
