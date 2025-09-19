@@ -1,9 +1,10 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { CartService } from '../../services/cart';
+
 import { map } from 'rxjs';
-import { AuthService } from '../../services/auth';
+import { AuthService } from '../../services/authservice/auth';
+import { CartService } from '../../services/cartservice/cart';
 
 
 @Component({

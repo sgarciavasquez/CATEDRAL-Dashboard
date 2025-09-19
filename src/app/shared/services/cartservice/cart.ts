@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { Product } from '../models/product';
+import { Product } from '../../components/products card/models/product';
 
 export interface CartItem { product: Product; qty: number; }
 const KEY = 'cp_cart_v1';

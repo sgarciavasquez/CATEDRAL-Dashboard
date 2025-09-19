@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Product } from '../shared/models/product';
+import { Product } from '../shared/components/products card/models/product';
 import { HeaderComponent } from '../shared/components/header/header';
-import { ProductCardComponent } from '../shared/components/products/product-card';
+import { ProductCardComponent } from '../shared/components/products card/product-card';
 
 @Component({
   selector: 'app-home',

@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
-import { CartService, CartItem } from '../../shared/services/cart';
 import { HeaderComponent } from '../../shared/components/header/header';
+import { CartItem, CartService } from '../../shared/services/cartservice/cart';
 
 @Component({
   selector: 'app-cart',

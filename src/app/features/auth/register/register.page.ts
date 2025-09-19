@@ -1,52 +1,40 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { HeaderComponent } from '../../../shared/components/header/header';
-import { AuthService } from '../../../shared/services/auth';
-
-
-function matchPasswords(group: AbstractControl): ValidationErrors | null {
-  const p = group.get('password')?.value;
-  const c = group.get('confirm')?.value;
-  return p && c && p !== c ? { mismatch: true } : null;
-}
+import { AuthService } from '../../../shared/services/authservice/auth';
 
 @Component({
-  selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, HeaderComponent],
-  templateUrl: './register.page.html',
-  styleUrls: ['./register.page.css'],
+  selector: 'app-register-page',
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  templateUrl: './register.page.html'
 })
 export class RegisterPage {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
 
+  loading = false;
   error = '';
-  showPwd = false;
 
   form = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(2)]],
-    email: ['', [Validators.required, Validators.email]],
-    passwords: this.fb.group({
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      confirm: ['', [Validators.required]],
-    }, { validators: matchPasswords })
-  });
+  name: ['', Validators.required],
+  email: ['', [Validators.required, Validators.email]],
+  // acepta con o sin espacio: +569 12345678  /  +56912345678
+  phone: ['', [
+    Validators.required,
+    Validators.pattern(/^\+569 ?\d{8}$/)   // quita los min/max length
+  ]],
+  password: ['', [Validators.required, Validators.minLength(6)]],
+});
 
-  submit() {
-    this.error = '';
-    this.form.markAllAsTouched();
+  onSubmit() {
     if (this.form.invalid) return;
-
-    const { name, email, passwords } = this.form.value;
-    const res = this.auth.register({
-      name: name!, email: email!, password: passwords!.password!,
+    this.loading = true; this.error = '';
+    this.auth.register(this.form.value as any).subscribe({
+      next: () => { this.loading = false; this.router.navigateByUrl('/'); },
+      error: (e) => { this.loading = false; this.error = e?.error?.message ?? 'Error al registrar'; }
     });
-
-    if (!res.ok) { this.error = res.error || 'No se pudo registrar'; return; }
-    this.router.navigateByUrl('/');
   }
 }
