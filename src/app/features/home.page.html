@@ -1,15 +1,25 @@
 <app-header></app-header>
 
-<main>
-  <section class="container-7xl py-6">
-    <h2 class="text-2xl font-semibold mb-4">Perfumes Populares</h2>
+<mat-drawer-container class="w-full min-h-[calc(100vh-64px)]">
+  <mat-drawer-content>
+    <main>
+      <section class="container-7xl py-6">
+        <h2 class="text-2xl font-semibold mb-4">Perfumes Populares</h2>
 
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      <app-product-card *ngFor="let p of popular" [product]="p"></app-product-card>
-    </div>
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <app-product-card *ngFor="let p of popular" [product]="p"></app-product-card>
+        </div>
 
-    <div class="mt-8 flex justify-center">
-      <button class="rounded-xl px-6 py-3 bg-stone-900 text-white">Ver más</button>
-    </div>
-  </section>
-</main>
+        <div class="mt-8 flex justify-center">
+          <button class="rounded-xl px-6 py-3 bg-stone-900 text-white">Ver más</button>
+        </div>
+      </section>
+    </main>
+  </mat-drawer-content>
+
+  <!-- Drawer del carrito -->
+  <mat-drawer #cartDrawer position="end" mode="over" class="w-full max-w-md p-4">
+    <h3 class="text-lg font-semibold mb-3">Tu carrito</h3>
+    <p class="text-sm text-neutral-500">No hay productos en el carrito.</p>
+  </mat-drawer>
+</mat-drawer-container>

@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, tap } from 'rxjs';
+import { BehaviorSubject, tap, switchMap } from 'rxjs'; // <-- ojo switchMap
 import { User, normalizeUser } from './models/user';
 import { AuthResponse, RegisterDto, LoginDto } from './models/auth';
+import { environment } from '../../../../environments/environment';
 
 const isBrowser = typeof window !== 'undefined';
 
@@ -10,29 +11,33 @@ const isBrowser = typeof window !== 'undefined';
 export class AuthService {
   private http = inject(HttpClient);
 
-  // estado de sesión
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   readonly user$ = this.currentUserSubject.asObservable();
 
   constructor() {
-    // rehidrata el usuario guardado (para que el header no se pierda al refrescar)
     if (isBrowser) {
       const raw = localStorage.getItem('current_user');
-      if (raw) {
-        try { this.currentUserSubject.next(JSON.parse(raw)); } catch {}
-      }
+      if (raw) { try { this.currentUserSubject.next(JSON.parse(raw)); } catch { } }
     }
   }
 
-  register(dto: RegisterDto) {
-    return this.http.post<AuthResponse>('/api/auth/register', dto).pipe(
-      tap(res => this.setSession(res))
-    );
+  /** LOGIN -> /auth/login */
+  login(dto: LoginDto) {
+    const payload = { email: dto.email.trim().toLowerCase(), password: dto.password };
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, payload)
+      .pipe(tap(res => this.setSession(res)));
   }
 
-  login(dto: LoginDto) {
-    return this.http.post<AuthResponse>('/api/auth/login', dto).pipe(
-      tap(res => this.setSession(res))
+  register(dto: RegisterDto) {
+    const payload = {
+      name: dto.name.trim(),
+      email: dto.email.trim().toLowerCase(),
+      password: dto.password,
+      phone: normalizePhone(dto.phone),
+      role: 'customer',
+    };
+    return this.http.post(`${environment.apiUrl}/users`, payload).pipe(
+      switchMap(() => this.login({ email: payload.email, password: payload.password }))
     );
   }
 
@@ -61,4 +66,20 @@ export class AuthService {
     }
     this.currentUserSubject.next(user);
   }
+}
+
+function normalizePhone(raw: string): string {
+  let phone = (raw ?? '').toString().trim();
+
+  // quita espacios repetidos
+  phone = phone.replace(/\s+/g, ' ').trim();
+
+  if (phone.startsWith('+569')) {
+    const tail = phone.replace(/^\+569\s*/, ''); // todo lo que viene después de +569 (quitando espacios)
+    const digits = tail.replace(/\D/g, '').slice(-8); // últimos 8 dígitos
+    return `+569 ${digits}`; // <-- con espacio => 13 chars
+  }
+
+  const digits = phone.replace(/\D/g, '').slice(-8);
+  return `+569 ${digits}`;
 }

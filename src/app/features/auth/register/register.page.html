@@ -5,68 +5,20 @@
       <p class="text-sm text-neutral-500 mt-1">Únete para comprar más rápido y ver tu historial.</p>
     </header>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
-      <!-- Nombre -->
-      <div>
-        <label class="block text-sm font-medium text-neutral-700 mb-1">Nombre</label>
-        <input class="w-full rounded-xl border border-neutral-300 px-4 py-2.5 text-[15px] outline-none
-                 focus:ring-2 focus:ring-neutral-900/20 focus:border-neutral-900/40" formControlName="name" type="text"
-          placeholder="Tu nombre" />
-        <p class="mt-1 text-xs text-red-600" *ngIf="form.get('name')?.touched && form.get('name')?.invalid">
-          Ingresa tu nombre.
-        </p>
-      </div>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-3 max-w-sm mx-auto">
+      <input formControlName="name" placeholder="Nombre" />
+      <input formControlName="email" type="email" placeholder="Correo" />
+      <input type="tel" formControlName="phone" placeholder="(+569)12345678" (input)="onPhoneInput($event)" />
+      <small class="text-xs text-neutral-500">Se autocompleta el prefijo (+569)</small>
+      <input formControlName="password" type="password" placeholder="Contraseña" />
 
-      <!-- Correo -->
-      <div>
-        <label class="block text-sm font-medium text-neutral-700 mb-1">Correo</label>
-        <input class="w-full rounded-xl border border-neutral-300 px-4 py-2.5 text-[15px] outline-none
-                 focus:ring-2 focus:ring-neutral-900/20 focus:border-neutral-900/40" formControlName="email"
-          type="email" placeholder="tucorreo@dominio.com" />
-        <p class="mt-1 text-xs text-red-600" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
-          Ingresa un correo válido.
-        </p>
-      </div>
+      <button type="submit" [disabled]="loading || form.invalid">
+        {{ loading ? 'Creando cuenta...' : 'Registrarme' }}
+      </button>
 
-      <!-- Teléfono -->
-      <div>
-        <label class="block text-sm font-medium text-neutral-700 mb-1">Teléfono</label>
-        <input class="w-full rounded-xl border border-neutral-300 px-4 py-2.5 text-[15px] outline-none
-           focus:ring-2 focus:ring-neutral-900/20 focus:border-neutral-900/40" formControlName="phone" type="text"
-          placeholder="+569 12345678" />
-        <p class="mt-1 text-xs text-neutral-500">
-          Formato: <code>+569 12345678</code> o <code>+56912345678</code>.
-        </p>
-        <p class="mt-1 text-xs text-red-600" *ngIf="form.get('phone')?.touched && form.get('phone')?.invalid">
-          Teléfono inválido. Usa +569 y 8 dígitos.
-        </p>
-      </div>
-
-      <!-- Contraseña -->
-      <div>
-        <label class="block text-sm font-medium text-neutral-700 mb-1">Contraseña</label>
-        <input class="w-full rounded-xl border border-neutral-300 px-4 py-2.5 text-[15px] outline-none
-                 focus:ring-2 focus:ring-neutral-900/20 focus:border-neutral-900/40" formControlName="password"
-          type="password" placeholder="Mínimo 6 caracteres" />
-        <p class="mt-1 text-xs text-red-600" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
-          Mínimo 6 caracteres.
-        </p>
-      </div>
-
-      <!-- Actions -->
-      <div class="pt-2 space-y-3">
-        <button class="w-full rounded-xl bg-neutral-900 text-white py-2.5 font-medium
-         hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed" type="submit"
-          [disabled]="form.invalid || loading">
-          {{ loading ? 'Creando cuenta…' : 'Crear cuenta' }}
-        </button>
-        <p class="text-sm text-neutral-600 text-center">
-          ¿Ya tienes cuenta?
-          <a routerLink="/auth/login" class="font-medium text-neutral-900 hover:underline">Ingresar</a>
-        </p>
-      </div>
-
-      <p class="text-sm text-red-600" *ngIf="error">{{ error }}</p>
+      <p *ngIf="error" class="text-red-500 text-sm">{{ error }}</p>
+      <a routerLink="/auth/login" class="text-sm underline">Ya tengo cuenta</a>
     </form>
+
   </section>
 </main>
