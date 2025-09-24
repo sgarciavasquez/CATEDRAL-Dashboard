@@ -1,0 +1,2 @@
+/* Mantén el alto visual del header nítido en pantallas densas */
+header img { image-rendering: -webkit-optimize-contrast; }
