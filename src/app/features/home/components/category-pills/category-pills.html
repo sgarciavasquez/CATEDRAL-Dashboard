@@ -1,16 +1,20 @@
-<section class="bg-[#d8e7f2] pb-6">
-  <div class="container-7xl">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-      <button
-        *ngFor="let c of cats"
-        (click)="go(c.key)"
-        class="flex flex-col items-center gap-3 rounded-2xl py-4 hover:opacity-90 transition"
-      >
-        <div class="w-28 h-28 rounded-full bg-white shadow flex items-center justify-center overflow-hidden">
-          <img [src]="c.img" alt="" class="max-w-[70%]" />
-        </div>
-        <span class="text-neutral-700 text-sm">{{ c.label }}</span>
-      </button>
+<section class="bg-white border-b border-[#e8ecf4]">
+  <div class="container-7xl py-6">
+    <div class="flex justify-center">
+      <div class="grid grid-cols-3 gap-16">
+        <button
+          *ngFor="let c of cats"
+          (click)="go(c.key)"
+          class="flex flex-col items-center gap-3 hover:opacity-90 transition"
+        >
+          <!-- círculo de fondo lavanda con el producto dentro -->
+          <div class="w-28 h-28 rounded-full bg-[#cfdaf0]/70 shadow-inner
+                      flex items-center justify-center ring-1 ring-white">
+            <img [src]="c.img" alt="" class="max-h-[72%] max-w-[72%] object-contain" />
+          </div>
+          <span class="text-neutral-700 text-sm">{{ c.label }}</span>
+        </button>
+      </div>
     </div>
   </div>
 </section>

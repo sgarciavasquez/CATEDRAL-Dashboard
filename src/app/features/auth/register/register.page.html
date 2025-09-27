@@ -1,24 +1,85 @@
-<main class="min-h-[calc(100vh-64px)] grid place-items-center px-4 py-10">
-  <section class="w-full max-w-md rounded-2xl border shadow-sm bg-white p-6 md:p-8">
-    <header class="mb-6">
-      <h1 class="text-2xl font-semibold text-neutral-900">Crear cuenta</h1>
-      <p class="text-sm text-neutral-500 mt-1">Únete para comprar más rápido y ver tu historial.</p>
+<app-header> </app-header>
+
+<main class="min-h-[calc(100vh-64px)] bg-[#f1f3f6] grid place-items-center px-4 py-10">
+  <section class="w-full max-w-[460px] rounded-2xl bg-white shadow-md border border-[#e6eaf1] p-6">
+    <header class="mb-5 text-center">
+      <h1 class="text-xl md:text-2xl font-semibold text-[#2f3f56]">Registrarse</h1>
     </header>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-3 max-w-sm mx-auto">
-      <input formControlName="name" placeholder="Nombre" />
-      <input formControlName="email" type="email" placeholder="Correo" />
-      <input type="tel" formControlName="phone" placeholder="(+569)12345678" (input)="onPhoneInput($event)" />
-      <small class="text-xs text-neutral-500">Se autocompleta el prefijo (+569)</small>
-      <input formControlName="password" type="password" placeholder="Contraseña" />
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-3.5">
+      <!-- Nombre -->
+      <div class="relative">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-8 h-8 rounded-md bg-[#2f3f56] text-white">
+          <!-- user -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M4 20a8 8 0 0116 0" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          </svg>
+        </span>
+        <input formControlName="name" placeholder="Nombre"
+               class="w-full rounded-xl bg-[#eef2f7] pl-12 pr-3 py-2 text-[15px] outline-none
+                      border border-transparent focus:border-[#b7c3d6]" />
+      </div>
 
-      <button type="submit" [disabled]="loading || form.invalid">
-        {{ loading ? 'Creando cuenta...' : 'Registrarme' }}
+      <!-- Correo -->
+      <div class="relative">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-8 h-8 rounded-md bg-[#2f3f56] text-white">
+          <!-- mail -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.5" />
+            <path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          </svg>
+        </span>
+        <input formControlName="email" type="email" placeholder="Correo"
+               class="w-full rounded-xl bg-[#eef2f7] pl-12 pr-3 py-2 text-[15px] outline-none
+                      border border-transparent focus:border-[#b7c3d6]" />
+      </div>
+
+      <!-- Teléfono -->
+      <div class="relative">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-8 h-8 rounded-md bg-[#2f3f56] text-white">
+          <!-- phone -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M6 2h4l1 4-2 1a11 11 0 005 5l1-2 4 1v4a2 2 0 01-2 2c-8.284 0-15-6.716-15-15A2 2 0 016 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          </svg>
+        </span>
+        <input type="tel" formControlName="phone" placeholder="(+569)12345678"
+               (input)="onPhoneInput($event)"
+               class="w-full rounded-xl bg-[#eef2f7] pl-12 pr-3 py-2 text-[15px] outline-none
+                      border border-transparent focus:border-[#b7c3d6]" />
+        <small class="block mt-1 text-xs text-neutral-500">Se autocompleta el prefijo (+569)</small>
+      </div>
+
+      <!-- Contraseña -->
+      <div class="relative">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-8 h-8 rounded-md bg-[#2f3f56] text-white">
+          <!-- candado -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 10V7a4 4 0 118 0v3" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </span>
+        <input formControlName="password" type="password" placeholder="Contraseña"
+               class="w-full rounded-xl bg-[#eef2f7] pl-12 pr-3 py-2 text-[15px] outline-none
+                      border border-transparent focus:border-[#b7c3d6]" />
+      </div>
+
+      <!-- Botón -->
+      <button type="submit"
+              class="w-full rounded-full bg-[#2f3f56] text-white py-2 font-medium hover:brightness-110
+                     disabled:opacity-50 disabled:cursor-not-allowed"
+              [disabled]="loading || form.invalid">
+        {{ loading ? 'Creando cuenta…' : 'Aceptar' }}
       </button>
 
-      <p *ngIf="error" class="text-red-500 text-sm">{{ error }}</p>
-      <a routerLink="/auth/login" class="text-sm underline">Ya tengo cuenta</a>
-    </form>
+      <p class="text-center text-sm text-neutral-600">
+        ¿Ya tienes cuenta?
+        <a routerLink="/auth/login" class="font-medium text-[#2f3f56] hover:underline">Ingresar</a>
+      </p>
 
+      <p *ngIf="error" class="text-red-600 text-sm text-center">{{ error }}</p>
+    </form>
   </section>
 </main>
+
+<app-footer> </app-footer>

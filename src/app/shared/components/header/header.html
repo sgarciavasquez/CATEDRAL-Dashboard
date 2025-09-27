@@ -1,22 +1,23 @@
-<header class="w-full bg-[#2f3f56] text-white border-b border-white/10">
-  <div class="container-7xl py-3 flex items-center gap-4">
-    <!-- Logo + marca -->
+<header class="w-full bg-[#2f3f56] text-white shadow">
+  <div class="container-7xl py-3 flex items-center gap-6">
+
+    <!-- Logo -->
     <a routerLink="/" class="flex items-center gap-3 shrink-0">
-      <img src="assets/logo_bl.png" alt="Catedral Perfumes" class="h-8 w-auto" />
+      <img src="assets/logo_bl.png" alt="Catedral Perfumes" class="h-10 w-auto" />
       <div class="leading-4 hidden sm:block">
-        <div class="tracking-[0.25em] text-2xl font-semibold">CATEDRAL</div>
+        <div class="tracking-[0.25em] text-2xl font-bold">CATEDRAL</div>
         <div class="text-xs tracking-[0.35em]">PERFUMES</div>
       </div>
     </a>
 
-    <div class="flex-1"></div>
-
     <!-- Buscador pill -->
-    <div class="relative hidden md:block w-[420px]">
-      <input
-        class="w-full rounded-full bg-white text-stone-900 pl-4 pr-10 py-2 placeholder:text-stone-400 outline-none shadow"
-        placeholder="Buscar perfumes..." type="search" />
-      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400">🔍</span>
+    <div class="flex-1 flex justify-center">
+      <div class="relative w-full max-w-lg">
+        <input
+          class="w-full rounded-full bg-white text-stone-900 pl-4 pr-10 py-2 placeholder:text-stone-400 outline-none"
+          placeholder="Buscar perfumes..." type="search" />
+        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500">🔍</span>
+      </div>
     </div>
 
     <!-- Sesión + carrito -->
@@ -26,18 +27,18 @@
         <button class="underline" (click)="logout()">Salir</button>
       </ng-container>
       <ng-template #guest>
-        <a routerLink="/auth/login" class="underline hidden md:inline">Ingresar</a>
-        <a routerLink="/auth/register" class="underline hidden md:inline">Registrarse</a>
+        <a routerLink="/auth/login" class="underline">Ingresar</a>
+        <a routerLink="/auth/register" class="underline">Registrarse</a>
       </ng-template>
 
-      <a routerLink="/cart" class="relative rounded-full bg-white/10 hover:bg-white/15 px-3 py-2">
-        <span class="sr-only">Carrito</span> 🛍️
-        <span
-          *ngIf="(count$ | async) as count"
-          class="absolute -top-2 -right-2 text-xs rounded-full bg-amber-400 text-black px-1.5 py-[2px]">
+      <a routerLink="/cart" class="relative px-3 py-2">
+        🛍️
+        <span *ngIf="(count$ | async) as count"
+          class="absolute -top-2 -right-2 text-xs rounded-full bg-amber-400 text-black px-1.5">
           {{ count }}
         </span>
       </a>
     </nav>
   </div>
+  
 </header>

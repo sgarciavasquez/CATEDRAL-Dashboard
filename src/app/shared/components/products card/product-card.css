@@ -1,0 +1,58 @@
+/* ===== Popular (igual al mockup) ===== */
+.pcard--popular{
+  display:grid;
+  grid-template-columns: 110px 1fr;      /* img | contenido */
+  gap:16px;
+  align-items:center;
+  background:#dbe6ff;                    /* celeste de mockup */
+  border:none;
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
+
+/* izquierda */
+.pcardp__imgwrap{
+  width:90px; height:90px;
+  border-radius:999px;
+  background:#fff;
+  display:grid; place-items:center;
+  box-shadow:0 2px 4px rgba(0,0,0,.06);
+}
+.pcardp__imgwrap img{ width:64px; height:auto; display:block; }
+
+/* derecha */
+.pcardp__name{
+  font-size:14px; font-weight:600; color:#1f2a37; margin:0 0 4px;
+  line-height:1.25;
+}
+.pcardp__price{
+  font-weight:700; color:#0f172a; margin-bottom:6px;
+}
+
+.pcardp__stars{ font-size:14px; margin-bottom:10px; letter-spacing:1px; }
+.pcardp__stars .star{ color:#c7d1e6; }              /* gris claro */
+.pcardp__stars .star.active{ color:#f3b515; }       /* dorado */
+
+.pcardp__actions{
+  display:flex; align-items:center; gap:10px;
+}
+.pcardp__btn{
+  background:#2f3f56; color:#fff; border:none;
+  border-radius:20px; padding:6px 14px; font-size:13px;
+}
+.pcardp__btn:hover{ filter:brightness(1.05); }
+
+.pcardp__icon{
+  width:28px; height:28px; border-radius:999px;
+  display:grid; place-items:center;
+  background:#2f3f56; color:#fff; border:none;
+}
+.pcardp__icon:hover{ filter:brightness(1.05); }
+
+/* Responsive afinado (en móviles la tarjeta pasa a vertical) */
+@media (max-width: 480px){
+  .pcard--popular{ grid-template-columns: 1fr; text-align:center; }
+  .pcardp__imgwrap{ margin-inline:auto; }
+  .pcardp__actions{ justify-content:center; }
+}

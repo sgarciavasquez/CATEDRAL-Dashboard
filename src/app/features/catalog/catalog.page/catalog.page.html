@@ -1,31 +1,44 @@
 <app-header></app-header>
 
-<section class="bg-[#d8e7f2] py-6">
-  <div class="container-7xl grid grid-cols-1 md:grid-cols-[240px,1fr] gap-6">
+<main class="container-7xl py-6">
+  <div class="grid grid-cols-12 gap-6">
+
     <!-- Sidebar categorías -->
-    <aside class="rounded-2xl bg-white p-4 h-fit">
-      <h3 class="text-lg font-semibold mb-2">Categorías</h3>
-      <nav class="flex flex-col gap-2 text-sm">
-        <a routerLink="/catalogo" [queryParams]="{cat:'mujer-nicho',sort:'mas-vendidos'}" class="underline">Nicho de Mujer</a>
-        <a routerLink="/catalogo" [queryParams]="{cat:'hombre-nicho',sort:'mas-vendidos'}" class="underline">Nicho Hombre</a>
-        <a routerLink="/catalogo" [queryParams]="{cat:'hombre-dis',sort:'mas-vendidos'}" class="underline">Diseñador de Hombre</a>
-        <a routerLink="/catalogo" [queryParams]="{cat:'mujer-dis',sort:'mas-vendidos'}" class="underline">Diseñador de Mujer</a>
-      </nav>
+    <aside class="col-span-12 md:col-span-3">
+      <div class="rounded-xl bg-white shadow border overflow-hidden">
+        <div class="px-4 py-3 bg-[#2f3f56] text-white font-semibold text-sm">
+          Categorías
+        </div>
+        <nav class="p-2 flex flex-col text-sm">
+          <a [routerLink]="['/catalogo']" [queryParams]="{cat:'mujer-nicho'}"
+             class="px-4 py-2 rounded hover:bg-stone-100">Nicho de Mujer</a>
+          <a [routerLink]="['/catalogo']" [queryParams]="{cat:'hombre-nicho'}"
+             class="px-4 py-2 rounded hover:bg-stone-100">Nicho Hombre</a>
+          <a [routerLink]="['/catalogo']" [queryParams]="{cat:'hombre-dis'}"
+             class="px-4 py-2 rounded hover:bg-stone-100">Diseñador de Hombre</a>
+          <a [routerLink]="['/catalogo']" [queryParams]="{cat:'mujer-dis'}"
+             class="px-4 py-2 rounded hover:bg-stone-100">Diseñador de Mujer</a>
+        </nav>
+      </div>
     </aside>
 
     <!-- Listado -->
-    <main>
+    <section class="col-span-12 md:col-span-9">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-2xl font-semibold">Perfumes {{ cat }}</h2>
+        <h1 class="text-lg font-semibold">{{ title }}</h1>
         <div class="text-sm">
           Ordenar por:
-          <a routerLink="/catalogo" [queryParams]="{cat:cat,sort:'mas-vendidos'}" class="underline">Más Vendidos</a>
+          <button class="underline" (click)="sort = 'mas-vendidos'">Más vendidos</button>
         </div>
       </div>
 
-      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
-        <app-product-card *ngFor="let p of items" [product]="p"></app-product-card>
+      <div class="grid gap-5 sm:grid-cols-2">
+        <!-- Reutilizamos la MISMA card con variant="popular" -->
+        <app-product-card *ngFor="let p of products" [product]="p" variant="popular"></app-product-card>
       </div>
-    </main>
+    </section>
+
   </div>
-</section>
+</main>
+
+<app-footer> </app-footer>

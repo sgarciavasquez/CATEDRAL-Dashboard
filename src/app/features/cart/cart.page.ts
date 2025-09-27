@@ -2,11 +2,12 @@ import { Component, inject } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { CartItem, CartService } from '../../shared/services/cartservice/cart';
+import { FooterComponent } from '../../shared/components/footer/footer';
 
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, HeaderComponent, DecimalPipe],
+  imports: [CommonModule, HeaderComponent, DecimalPipe, FooterComponent],
   templateUrl: './cart.page.html',
   styleUrls: ['./cart.page.css'],
 })

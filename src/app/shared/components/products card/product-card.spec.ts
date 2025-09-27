@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ProductCardComponent } from './product-card';
-import { CartService } from '../../services/cart';
+import { CartService } from '../../services/cartservice/cart'; 
 
 describe('ProductCard', () => {
   let component: ProductCardComponent;

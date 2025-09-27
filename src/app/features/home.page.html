@@ -1,5 +1,15 @@
 <app-header></app-header>
 
+<div class="bg-[#243144] text-xs py-2">
+  <div class="container-7xl flex justify-center gap-6">
+    <a routerLink="/catalogo" [queryParams]="{cat:'mujer-dis'}" class="hover:underline">Perfumes de Mujer</a>
+    <a routerLink="/catalogo" [queryParams]="{cat:'hombre-dis'}" class="hover:underline">Perfumes de Hombre</a>
+    <a routerLink="/catalogo" [queryParams]="{cat:'dis'}" class="hover:underline">Perfumes de Diseñador</a>
+    <a routerLink="/catalogo" [queryParams]="{cat:'nicho'}" class="hover:underline">Perfumes de Nicho</a>
+    <a routerLink="/faq" class="hover:underline">FAQ</a>
+  </div>
+</div>
+
 <!-- Carrusel -->
 <app-hero-carousel></app-hero-carousel>
 
@@ -9,18 +19,25 @@
 <!-- Más vendidos -->
 <main>
   <section class="container-7xl py-8">
-    <h2 class="text-2xl font-semibold mb-4">Más vendidos</h2>
+    <h2 class="text-xl font-semibold text-center mb-6 border-b border-stone-200 pb-2">
+      Perfumes Populares
+    </h2>
+
 
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      <app-product-card *ngFor="let p of bestSellers" [product]="p"></app-product-card>
+      <app-product-card *ngFor="let p of bestSellers" [product]="p" variant="popular">
+      </app-product-card>
     </div>
 
     <div class="mt-8 flex justify-center">
-      <a routerLink="/catalogo" class="rounded-xl px-6 py-3 bg-stone-900 text-white">Ver catálogo</a>
+      <a routerLink="/catalogo" class="rounded-full px-6 py-2 bg-[#2f3f56] text-white hover:bg-[#223149] transition">
+        Ver más
+      </a>
     </div>
+
   </section>
+
 </main>
 
 <!-- ... tu contenido ... -->
 <app-footer></app-footer>
-

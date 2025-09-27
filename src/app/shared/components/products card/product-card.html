@@ -1,17 +1,44 @@
-<article class="rounded-2xl bg-white shadow p-4 flex gap-4 items-center">
-  <img [src]="product.imageUrl" [alt]="product.name" class="w-20 h-20 object-contain rounded" />
-  <div class="flex-1">
-    <h3 class="font-semibold leading-snug">{{ product.name }}</h3>
-    <div class="text-stone-500 text-sm">
-      {{ product.stock > 0 ? 'Stock disponible' : 'Sin stock' }}
+<ng-container *ngIf="variant === 'popular'; else defaultCard">
+  <article class="pcard pcard--popular">
+    <!-- izquierda: imagen (círculo) -->
+    <div class="pcardp__left">
+      <div class="pcardp__imgwrap">
+        <img [src]="product.imageUrl" [alt]="product.name" />
+      </div>
     </div>
-    <div class="mt-1 font-bold">$ {{ product.price | number:'1.0-0' }}</div>
-  </div>
 
-  <button
-    class="rounded-xl px-4 py-2 bg-stone-700 text-white disabled:opacity-50"
-    (click)="add()"
-    [disabled]="product.stock===0">
-    {{ added ? 'Agregado ✓' : 'Agregar' }}
-  </button>
-</article>
+    <div class="pcardp__right">
+      <h3 class="pcardp__name">{{ product.name }}</h3>
+
+      <div class="pcardp__price">${{ product.price | number }}</div>
+
+      <div class="pcardp__stars">
+        <ng-container *ngFor="let _ of stars(); let i = index">
+          <span class="star" [class.active]="i < (product.rating || 0)">★</span>
+        </ng-container>
+      </div>
+
+      <div class="pcardp__actions">
+        <button type="button" class="pcardp__btn">Ver detalles</button>
+        <button type="button" class="pcardp__icon" aria-label="Agregar al carrito"
+          (click)="onAddToCart($event)">🛒</button>
+      </div>
+    </div>
+  </article>
+</ng-container>
+
+<ng-template #defaultCard>
+  <article class="pcard">
+    <div class="pcard__row">
+      <img [src]="product.imageUrl" [alt]="product.name" class="pcard__thumb" />
+      <div class="pcard__info">
+        <h3 class="pcard__name">{{ product.name }}</h3>
+        <small class="pcard__stock" [class.out]="product.stock === 0">
+          {{ product.stock === 0 ? 'Sin stock' : 'Stock disponible' }}
+        </small>
+        <div class="pcard__price">${{ product.price | number }}</div>
+      </div>
+      <button type="button" class="pcard__add" (click)="onAddToCart($event)">Agregar</button>
+    </div>
+  </article>
+</ng-template>
