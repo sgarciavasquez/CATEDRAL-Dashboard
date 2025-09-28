@@ -4,6 +4,8 @@ import { RegisterPage } from './features/auth/register/register.page';
 import { HomeComponent } from './features/home.page';
 import { CartPage } from './features/cart/cart.page';
 import { CatalogPage } from './features/catalog/catalog.page/catalog.page';
+import { ForgotPasswordPage } from './features/auth/forgot-password/forgot-password.page';
+import { ResetPasswordPage } from './features/auth/forgot-password/reset-password.page';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, title: 'Catedral Perfumes' },
@@ -13,5 +15,9 @@ export const routes: Routes = [
 
   { path: 'auth/login', component: LoginPage, title: 'Ingresar' },
   { path: 'auth/register', component: RegisterPage, title: 'Registro' },
+
+   { path: 'auth/forgot-password', component: ForgotPasswordPage, title: 'Recuperar contraseña' },
+  { path: 'reset-password', component: ResetPasswordPage, title: 'Restablecer contraseña' },
+
   { path: '**', redirectTo: '' },
 ];

@@ -66,6 +66,20 @@ export class AuthService {
     }
     this.currentUserSubject.next(user);
   }
+
+  forgotPassword(email: string) {
+    return this.http.post<{ message: string }>('/api/auth/forgot-password', { email });
+  }
+
+  resetPassword(newPassword: string, resetToken: string) {
+    return this.http.put<{ message: string }>('/api/auth/reset-password', { newPassword, resetToken });
+  }
+
+  changePassword(oldPassword: string, newPassword: string) {
+    // requiere estar logueado (el interceptor ya adjunta el Bearer)
+    return this.http.put<{ message: string }>('/api/auth/change-password', { oldPassword, newPassword });
+  }
+
 }
 
 function normalizePhone(raw: string): string {
@@ -83,3 +97,4 @@ function normalizePhone(raw: string): string {
   const digits = phone.replace(/\D/g, '').slice(-8);
   return `+569 ${digits}`;
 }
+
