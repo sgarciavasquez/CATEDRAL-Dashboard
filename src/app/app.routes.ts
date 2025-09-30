@@ -6,6 +6,8 @@ import { CartPage } from './features/cart/cart.page';
 import { CatalogPage } from './features/catalog/catalog.page/catalog.page';
 import { ForgotPasswordPage } from './features/auth/forgot-password/forgot-password.page';
 import { ResetPasswordPage } from './features/auth/forgot-password/reset-password.page';
+import { ProfilePage } from './features/profile.users/profile.page';
+import { authGuard } from './shared/services/authservice/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, title: 'Catedral Perfumes' },
@@ -16,8 +18,16 @@ export const routes: Routes = [
   { path: 'auth/login', component: LoginPage, title: 'Ingresar' },
   { path: 'auth/register', component: RegisterPage, title: 'Registro' },
 
-   { path: 'auth/forgot-password', component: ForgotPasswordPage, title: 'Recuperar contraseña' },
+  { path: 'auth/forgot-password', component: ForgotPasswordPage, title: 'Recuperar contraseña' },
   { path: 'reset-password', component: ResetPasswordPage, title: 'Restablecer contraseña' },
+
+  {
+    path: 'perfil',
+    loadComponent: () =>
+      import('./features/profile.users/profile.page').then(m => m.ProfilePage),
+    canActivate: [authGuard],
+    title: 'Mi perfil'
+  },
 
   { path: '**', redirectTo: '' },
 ];

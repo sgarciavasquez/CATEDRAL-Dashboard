@@ -23,7 +23,11 @@
     <!-- Sesión + carrito -->
     <nav class="flex items-center gap-4 text-sm">
       <ng-container *ngIf="(user$ | async) as u; else guest">
-        <span class="opacity-80 hidden md:inline">Hola, {{ u.name }}</span>
+        <a [routerLink]="['/perfil']" class="flex items-center gap-2 hover:underline">
+          <span class="opacity-80 hidden md:inline">Hola, {{ u.name }}</span>
+          <span class="grid place-items-center w-8 h-8 rounded-full bg-white/10">👤</span>
+        </a>
+
         <button class="underline" (click)="logout()">Salir</button>
       </ng-container>
       <ng-template #guest>
@@ -40,5 +44,5 @@
       </a>
     </nav>
   </div>
-  
+
 </header>
