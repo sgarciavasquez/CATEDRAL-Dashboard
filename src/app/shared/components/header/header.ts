@@ -1,12 +1,10 @@
+// src/app/shared/components/header/header.ts
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { map } from 'rxjs';
-
-// 👇 importa las piezas que usa tu template
 import { NgIf, AsyncPipe } from '@angular/common';
-
 import { AuthService } from '../../services/authservice/auth';
 import { CartService } from '../../services/cartservice/cart';
+import { map } from 'rxjs';
 
 @Component({
   selector: 'app-header',

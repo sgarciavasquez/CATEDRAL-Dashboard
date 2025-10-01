@@ -62,9 +62,13 @@
                 <div class="space-y-4">
                     <article *ngFor="let r of reservations" class="border rounded-lg p-4">
                         <div class="flex items-start gap-4">
-                            <div class="w-20">
-                                <img [src]="r.items[0]?.imageUrl || 'assets/p1.png'" alt="" class="w-full rounded" />
-                            </div>
+                            <ng-container *ngIf="r.items?.length; else noImg">
+                                <img [src]="r.items[0].imageUrl" alt="">
+                            </ng-container>
+                            <ng-template #noImg>
+                                <img src="assets/p1.png" alt="">
+                            </ng-template>
+
                             <div class="flex-1">
                                 <div class="text-sm text-neutral-500">Pedido Nº{{ r._id }}</div>
                                 <div class="text-sm mt-1">

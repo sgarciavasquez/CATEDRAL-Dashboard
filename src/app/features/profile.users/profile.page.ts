@@ -13,7 +13,7 @@ import { HeaderComponent } from "../../shared/components/header/header";
 @Component({
     selector: 'app-profile-page',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, RouterLink, NgIf, NgFor, AsyncPipe, FooterComponent, HeaderComponent],
+    imports: [CommonModule, ReactiveFormsModule, RouterLink, NgIf, NgFor, FooterComponent, HeaderComponent],
     templateUrl: './profile.page.html',
     styleUrls: ['./profile.page.css'],
 })
