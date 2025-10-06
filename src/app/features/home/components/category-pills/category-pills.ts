@@ -16,9 +16,9 @@ export class CategoryPillsComponent {
   private router = inject(Router);
 
   cats: Cat[] = [
-    { key: 'mujer-dis',    label: 'Diseñador Mujer',  img: 'assets/p1.png' },
-    { key: 'hombre-dis',   label: 'Diseñador Hombre', img: 'assets/p2.png' },
-    { key: 'Nicho', label: 'Nicho',     img: 'assets/p3.png' },
+    { key: 'mujer-dis',  label: 'Diseñador Mujer',  img: 'assets/p1.png' },
+    { key: 'hombre-dis', label: 'Diseñador Hombre', img: 'assets/p2.png' },
+    { key: 'Nicho',      label: 'Nicho',            img: 'assets/p3.png' },
   ];
 
   go(key: CatKey) {

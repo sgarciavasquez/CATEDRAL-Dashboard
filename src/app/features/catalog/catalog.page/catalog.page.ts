@@ -1,77 +1,86 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-
-import { HeaderComponent } from '../../../shared/components/header/header';
-import { ProductCardComponent } from '../../../shared/components/products card/product-card';
-import { FooterComponent } from '../../../shared/components/footer/footer';
+import { Subscription, combineLatest, map } from 'rxjs';
 
 import { ProductService } from '../../../shared/services/productservice/product.service';
 import { UiProduct } from '../../../shared/services/productservice/product.ui';
+import { ProductCardComponent } from '../../../shared/components/products card/product-card';
+import { HeaderComponent } from '../../../shared/components/header/header';
+import { FooterComponent } from '../../../shared/components/footer/footer';
 
-type CatKey = 'mujer-dis' | 'hombre-dis' | 'nicho';
+// Claves de RUTA (no toques product.ui.ts)
+type CatRouteKey = 'nicho-mujer' | 'nicho-hombre' | 'mujer-dis' | 'hombre-dis' | 'nicho';
 
 @Component({
-  standalone: true,
   selector: 'app-catalog-page',
-  imports: [CommonModule, HeaderComponent, ProductCardComponent, RouterLink, FooterComponent],
-  templateUrl: './catalog.page.html'
+  standalone: true,
+  imports: [CommonModule, RouterLink, ProductCardComponent, HeaderComponent, FooterComponent],
+  templateUrl: './catalog.page.html',
+  styleUrls: ['./catalog.page.css'],
 })
-export class CatalogPage {
-  route = inject(ActivatedRoute);
+export class CatalogPage implements OnInit, OnDestroy {
+  private route = inject(ActivatedRoute);
   private productsSrv = inject(ProductService);
 
-  title = 'Perfumes';
+  all: UiProduct[] = [];
+  items: UiProduct[] = [];
   loading = true;
+  selectedKey: CatRouteKey | '' = '';
 
-  allProducts: UiProduct[] = [];
-  products: UiProduct[] = [];
+  private sub?: Subscription;
 
-  currentCat: '' | CatKey = '';
-  currentSort: 'mas-vendidos' | 'precio' = 'mas-vendidos';
+  private has(names: string[], k: 'mujer'|'hombre'|'nicho') {
+    return names.includes(k);
+  }
 
-  constructor() {
-    // 1) cargar productos
-    this.productsSrv.listUi().subscribe({
-      next: list => {
-        this.allProducts = list;
-        this.loading = false;
-        this.applyQueryParams();
-      },
-      error: () => (this.loading = false),
+  /** Lógica de filtrado exacta que pediste */
+  private matches(key: CatRouteKey, p: UiProduct): boolean {
+    const names = (p.categoryNames ?? []).map(n => (n || '').toLowerCase());
+    const M = this.has(names, 'mujer');
+    const H = this.has(names, 'hombre');
+    const N = this.has(names, 'nicho');
+
+    switch (key) {
+      case 'nicho-mujer':  return N && M;     // Nicho + Mujer
+      case 'nicho-hombre': return N && H;     // Nicho + Hombre
+      case 'mujer-dis':    return M && !N;    // Diseñador Mujer (sin nicho)
+      case 'hombre-dis':   return H && !N;    // Diseñador Hombre (sin nicho)
+      case 'nicho':        return N;          // Cualquier Nicho
+      default:             return true;
+    }
+  }
+
+  get title(): string {
+    switch (this.selectedKey) {
+      case 'nicho-mujer':  return 'Perfumes de Nicho para Mujeres';
+      case 'nicho-hombre': return 'Perfumes de Nicho para Hombres';
+      case 'mujer-dis':    return 'Perfumes de Diseñador para Mujeres';
+      case 'hombre-dis':   return 'Perfumes de Diseñador para Hombres';
+      case 'nicho':        return 'Perfumes de Nicho';
+      default:             return 'Perfumes';
+    }
+  }
+
+  ngOnInit(): void {
+    const data$ = this.productsSrv.listUi();
+    const qp$   = this.route.queryParams;
+
+    this.sub = combineLatest([data$, qp$]).pipe(
+      map(([list, params]) => {
+        this.all = list ?? [];
+        const raw = (params['cat'] ?? '').toLowerCase();
+        const allowed: CatRouteKey[] = ['nicho-mujer','nicho-hombre','mujer-dis','hombre-dis','nicho'];
+        this.selectedKey = (allowed.includes(raw as CatRouteKey) ? raw as CatRouteKey : '');
+
+        if (!this.selectedKey) return this.all;
+        return this.all.filter(p => this.matches(this.selectedKey as CatRouteKey, p));
+      })
+    ).subscribe(filtered => {
+      this.items = filtered;
+      this.loading = false;
     });
-
-    // 2) reaccionar a cambios de query params
-    this.route.queryParamMap.subscribe(() => this.applyQueryParams());
   }
 
-  private isCatKey(v: string): v is CatKey {
-    return v === 'mujer-dis' || v === 'hombre-dis' || v === 'nicho';
-  }
-
-  private applyQueryParams() {
-    const q = this.route.snapshot.queryParamMap;
-    this.currentCat  = (q.get('cat')  ?? '') as '' | CatKey;
-    this.currentSort = (q.get('sort') ?? 'mas-vendidos') as 'mas-vendidos' | 'precio';
-
-    this.title = this.titleFromCat(this.currentCat);
-
-    const filtered = this.isCatKey(this.currentCat)
-      ? this.allProducts.filter(p => p.categoryKeys?.includes(this.currentCat as CatKey))
-      : this.allProducts;
-
-    this.products = [...filtered];
-    if (this.currentSort === 'precio') {
-      this.products.sort((a, b) => a.price - b.price);
-    }
-  }
-
-  private titleFromCat(cat: '' | CatKey) {
-    switch (cat) {
-      case 'mujer-dis':  return 'Perfumes de Diseñador para Mujeres';
-      case 'hombre-dis': return 'Perfumes de Diseñador para Hombres';
-      case 'nicho':      return 'Perfumes de Nicho';
-      default:           return 'Perfumes';
-    }
-  }
+  ngOnDestroy(): void { this.sub?.unsubscribe(); }
 }

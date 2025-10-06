@@ -1,0 +1,79 @@
+<app-header></app-header>
+
+<main class="container-7xl py-6">
+  <!-- Loading / Error -->
+  <div *ngIf="loading" class="text-sm text-neutral-500">Cargando…</div>
+  <div *ngIf="!loading && error" class="text-sm text-red-600">{{ error }}</div>
+
+  <ng-container *ngIf="!loading && p">
+    <!-- Migas -->
+    <nav class="text-xs text-neutral-500 mb-4 flex gap-1 flex-wrap">
+      <a routerLink="/">Inicio</a><span>·</span>
+      <a routerLink="/catalogo">Catálogo</a><span>·</span>
+      <span>{{ p.name }}</span>
+    </nav>
+
+    <!-- Cabecera -->
+    <section class="grid md:grid-cols-2 gap-6 bg-white rounded-2xl p-6 ring-1 ring-[#e8ecf4]">
+      <!-- Imagen -->
+      <div class="rounded-xl bg-[#f5f7fb] grid place-items-center p-6">
+        <img [src]="p.imageUrl" [alt]="p.name" class="max-h-[380px] object-contain" />
+      </div>
+
+      <!-- Info -->
+      <div>
+        <div class="text-xs text-neutral-500 mb-1">{{ p.code }}</div>
+        <h1 class="text-xl font-semibold text-[#2f3f56] leading-snug">{{ p.name }}</h1>
+
+        <div class="mt-2 text-[#2f3f56] font-semibold text-lg">
+          {{ p.price | currency:'CLP':'symbol-narrow':'1.0-0' }}
+        </div>
+
+        <div class="mt-1 text-sm"
+             [class.text-green-700]="p.inStock > 0"
+             [class.text-red-600]="p.inStock === 0">
+          {{ p.inStock > 0 ? ('Stock disponible: ' + p.inStock) : 'Sin stock' }}
+        </div>
+
+        <!-- Categorías -->
+        <div class="mt-3 flex flex-wrap gap-2" *ngIf="p.categoryNames?.length">
+          <span *ngFor="let c of p.categoryNames"
+                class="text-[11px] px-2 py-[2px] rounded-full bg-[#e9eef8] text-[#2f3f56] ring-1 ring-[#dfe6f6]">
+            {{ c }}
+          </span>
+        </div>
+
+        <!-- Cantidad + Acciones -->
+        <div class="mt-6 flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <button class="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200" (click)="dec()">−</button>
+            <span class="w-8 text-center">{{ qty }}</span>
+            <button class="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200" (click)="inc()">+</button>
+          </div>
+
+          <button
+            class="px-5 py-2 rounded-full disabled:opacity-50 bg-[#2f3f56] text-white hover:bg-[#223149] transition"
+            [disabled]="p.inStock === 0"
+            (click)="addToCart()"
+          >
+            Agregar al carro
+          </button>
+
+          <button class="px-5 py-2 rounded-full bg-white ring-1 ring-[#dfe6f6] hover:bg-stone-100 transition">
+            Reservar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- (Opcional) Sección de comentarios / specs -->
+    <section class="mt-8">
+      <h2 class="text-base font-semibold text-[#2f3f56] mb-3">Descripción</h2>
+      <p class="text-sm text-neutral-700">
+        Fragancia de alta calidad. (Si más adelante tu API trae descripción/notas piramidales, la renderizamos aquí.)
+      </p>
+    </section>
+  </ng-container>
+</main>
+
+<app-footer></app-footer>

@@ -13,7 +13,18 @@ export const routes: Routes = [
   { path: '', component: HomeComponent, title: 'Catedral Perfumes' },
 
   { path: 'cart', component: CartPage, title: 'Carro' },
-  { path: 'catalogo', component: CatalogPage, title: 'Catalogo' },
+  {
+    path: 'catalogo',
+    loadComponent: () =>
+      import('./features/catalog/catalog.page/catalog.page')
+        .then(m => m.CatalogPage), 
+  },
+  {
+    path: 'producto/:id',
+    loadComponent: () =>
+      import('./features/catalog/product.info/product.info')
+        .then(m => m.ProductInfo),
+  },
 
   { path: 'auth/login', component: LoginPage, title: 'Ingresar' },
   { path: 'auth/register', component: RegisterPage, title: 'Registro' },

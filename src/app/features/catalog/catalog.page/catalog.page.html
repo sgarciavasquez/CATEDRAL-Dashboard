@@ -1,42 +1,50 @@
-<!-- src/app/features/catalog/catalog.page/catalog.page.html -->
 <app-header></app-header>
 
-<main class="container-7xl py-6">
-  <div class="grid grid-cols-12 gap-6">
-    <aside class="col-span-12 md:col-span-3">
-      <div class="rounded-xl bg-white shadow border overflow-hidden">
-        <div class="px-4 py-3 bg-[#2f3f56] text-white font-semibold text-sm">Categorías</div>
-        <nav class="p-2 flex flex-col text-sm">
-          <a [routerLink]="['/catalogo']" [queryParams]="{cat:'mujer-dis',   sort: currentSort}"
-            class="px-4 py-2 rounded hover:bg-stone-100">Diseñador Mujer</a>
-          <a [routerLink]="['/catalogo']" [queryParams]="{cat:'hombre-dis',  sort: currentSort}"
-            class="px-4 py-2 rounded hover:bg-stone-100">Diseñador Hombre</a>
-          <a [routerLink]="['/catalogo']" [queryParams]="{cat:'nicho',       sort: currentSort}"
-            class="px-4 py-2 rounded hover:bg-stone-100">Nicho</a>
-        </nav>
+<main class="container-7xl py-6 grid grid-cols-12 gap-6">
+  <!-- Sidebar categorías -->
+  <aside class="col-span-12 md:col-span-3">
+    <div class="bg-white rounded-xl shadow ring-1 ring-[#e8ecf4] overflow-hidden">
+      <div class="px-4 py-3 bg-[#2f3f56] text-white font-semibold text-sm">Categorías</div>
+      <nav class="p-2 flex flex-col text-sm">
+        <a [routerLink]="['/catalogo']" [queryParams]="{ cat: 'nicho-mujer' }"
+           class="px-4 py-2 rounded hover:bg-stone-100"
+           [class.bg-[#e9eef8]]="selectedKey === 'nicho-mujer'">Nicho de Mujer</a>
+
+        <a [routerLink]="['/catalogo']" [queryParams]="{ cat: 'nicho-hombre' }"
+           class="px-4 py-2 rounded hover:bg-stone-100"
+           [class.bg-[#e9eef8]]="selectedKey === 'nicho-hombre'">Nicho Hombre</a>
+
+        <a [routerLink]="['/catalogo']" [queryParams]="{ cat: 'mujer-dis' }"
+           class="px-4 py-2 rounded hover:bg-stone-100"
+           [class.bg-[#e9eef8]]="selectedKey === 'mujer-dis'">Diseñador Mujer</a>
+
+        <a [routerLink]="['/catalogo']" [queryParams]="{ cat: 'hombre-dis' }"
+           class="px-4 py-2 rounded hover:bg-stone-100"
+           [class.bg-[#e9eef8]]="selectedKey === 'hombre-dis'">Diseñador Hombre</a>
+
+        <a [routerLink]="['/catalogo']" [queryParams]="{ cat: 'nicho' }"
+           class="px-4 py-2 rounded hover:bg-stone-100"
+           [class.bg-[#e9eef8]]="selectedKey === 'nicho'">Todos los Nicho</a>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- Contenido -->
+  <section class="col-span-12 md:col-span-9">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg md:text-xl font-semibold">{{ title }}</h2>
+      <div class="text-xs text-neutral-500">Ordenar por: <span class="underline">Más vendidos</span></div>
+    </div>
+
+    <div *ngIf="loading" class="text-sm text-neutral-500">Cargando…</div>
+
+    <ng-container *ngIf="!loading">
+      <div *ngIf="items.length === 0" class="text-sm text-neutral-500">No hay productos para esta categoría.</div>
+      <div class="grid gap-4 md:gap-6 md:grid-cols-2">
+        <app-product-card *ngFor="let p of items" [product]="p"></app-product-card>
       </div>
-    </aside>
-
-    <section class="col-span-12 md:col-span-9">
-      <div class="flex items-center justify-between mb-4">
-        <h1 class="text-lg font-semibold">{{ title }}</h1>
-        <div class="text-sm">
-          Ordenar por:
-          <a [routerLink]="['/catalogo']" [queryParams]="{cat: currentCat, sort:'mas-vendidos'}" class="underline">Más
-            vendidos</a>
-          |
-          <a [routerLink]="['/catalogo']" [queryParams]="{cat: currentCat, sort:'precio'}" class="underline">Precio</a>
-        </div>
-      </div>
-
-
-      <div *ngIf="loading" class="text-sm text-neutral-500">Cargando…</div>
-
-      <div class="grid gap-5 sm:grid-cols-2" *ngIf="!loading">
-        <app-product-card *ngFor="let p of products" [product]="p" variant="popular"></app-product-card>
-      </div>
-    </section>
-  </div>
+    </ng-container>
+  </section>
 </main>
 
 <app-footer></app-footer>

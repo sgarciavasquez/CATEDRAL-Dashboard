@@ -1,44 +1,59 @@
-<ng-container *ngIf="variant === 'popular'; else defaultCard">
-  <article class="pcard pcard--popular">
-    <!-- izquierda: imagen (círculo) -->
-    <div class="pcardp__left">
-      <div class="pcardp__imgwrap">
-        <img [src]="product.imageUrl" [alt]="product.name" />
-      </div>
+<article class="pcard rounded-2xl bg-[#CED9F1]/60 shadow-[0_6px_16px_rgba(47,63,86,.15)] ring-1 ring-white/60 p-4">
+  <div class="flex gap-4 items-center">
+    <!-- thumb redonda -->
+    <div class="shrink-0 w-20 h-20 rounded-full bg-white shadow-inner grid place-items-center ring-1 ring-[#e8ecf4]">
+      <img [src]="product.imageUrl" [alt]="product.name" class="max-h-[70%] max-w-[70%] object-contain" />
     </div>
 
-    <div class="pcardp__right">
-      <h3 class="pcardp__name">{{ product.name }}</h3>
+    <!-- info -->
+    <div class="min-w-0 flex-1">
+      <div class="text-[11px] tracking-wide text-neutral-500 mb-1">{{ product.code }}</div>
 
-      <div class="pcardp__price">${{ product.price | number }}</div>
+      <h3 class="font-semibold text-sm text-[#2f3f56] leading-snug line-clamp-2">
+        {{ product.name }}
+      </h3>
 
-      <div class="pcardp__stars">
+      <!-- rating -->
+      <div class="mt-1 text-[11px] text-amber-500">
         <ng-container *ngFor="let _ of stars(); let i = index">
-          <span class="star" [class.active]="i < (product.rating || 0)">★</span>
+          <span [class.opacity-30]="i >= (product.rating || 0)">★</span>
         </ng-container>
       </div>
 
-      <div class="pcardp__actions">
-        <button type="button" class="pcardp__btn">Ver detalles</button>
-        <button type="button" class="pcardp__icon" aria-label="Agregar al carrito"
-          (click)="onAddToCart($event)">🛒</button>
-      </div>
-    </div>
-  </article>
-</ng-container>
+      <!-- precio + stock -->
+      <div class="mt-1 flex items-center gap-3">
+        <div class="text-[#2f3f56] font-semibold">
+          {{ product.price | currency:'CLP':'symbol-narrow':'1.0-0' }}
+        </div>
 
-<ng-template #defaultCard>
-  <article class="pcard">
-    <div class="pcard__row">
-      <img [src]="product.imageUrl" [alt]="product.name" class="pcard__thumb" />
-      <div class="pcard__info">
-        <h3 class="pcard__name">{{ product.name }}</h3>
-        <small class="pcard__stock" [class.out]="product.stock === 0">
-          {{ product.stock === 0 ? 'Sin stock' : 'Stock disponible' }}
-        </small>
-        <div class="pcard__price">${{ product.price | number }}</div>
+        <div class="text-[11px] font-medium" [class.text-green-700]="product.inStock > 0"
+          [class.text-red-600]="product.inStock === 0">
+          {{ product.inStock > 0 ? 'Stock disponible' : 'Sin stock' }}
+        </div>
       </div>
-      <button type="button" class="pcard__add" (click)="onAddToCart($event)">Agregar</button>
     </div>
-  </article>
-</ng-template>
+
+    <!-- acciones -->
+    <div class="flex items-center gap-2">
+      <a class="px-3 py-1 text-[12px] rounded-full bg-white text-[#2f3f56] hover:bg-stone-100 transition"
+        [routerLink]="['/producto', product.id]">
+        Ver detalles
+      </a>
+
+
+      <button type="button"
+        class="w-8 h-8 rounded-full grid place-items-center bg-[#2f3f56] text-white hover:bg-[#223149] transition"
+        aria-label="Agregar al carrito" (click)="onAddToCart($event)">
+        🛒
+      </button>
+    </div>
+  </div>
+
+  <!-- chips categorías -->
+  <div *ngIf="product.categoryNames?.length" class="mt-3 flex flex-wrap gap-2">
+    <span *ngFor="let c of product.categoryNames"
+      class="text-[11px] px-2 py-[2px] rounded-full bg-white/80 text-[#2f3f56] ring-1 ring-[#e8ecf4]">
+      {{ c }}
+    </span>
+  </div>
+</article>

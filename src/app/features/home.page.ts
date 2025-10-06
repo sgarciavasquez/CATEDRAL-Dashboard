@@ -27,24 +27,14 @@ import { Product } from '../shared/components/products card/models/product';
 export class HomeComponent implements OnInit {
   private productsSrv = inject(ProductService);
 
-  bestSellers: Product[] = [];
+  bestSellers: UiProduct[] = [];
   loading = true;
   error = '';
-
-  private toCardModel = (u: UiProduct): Product => ({
-    id: u.id,
-    // mostramos "CODE — NOMBRE" sin tocar la card
-    name: `${u.code} — ${u.name}`,
-    price: u.price,
-    imageUrl: u.imageUrl,
-    stock: 0,               // sin qty por ahora
-    rating: u.rating ?? 4.7
-  });
 
   ngOnInit(): void {
     this.productsSrv.listUi().subscribe({
       next: list => {
-        this.bestSellers = list.slice(0, 6).map(this.toCardModel);
+        this.bestSellers = list.slice(0, 6);   
         this.loading = false;
       },
       error: err => {
