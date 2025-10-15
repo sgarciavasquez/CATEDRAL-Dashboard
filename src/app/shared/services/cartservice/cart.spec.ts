@@ -11,7 +11,7 @@ describe('CartService', () => {
     name: 'Test Perfume',
     price: 10000,
     imageUrl: 'assets/p1.png',
-    stock: 10,
+    inStock: 10,
   };
 
   beforeEach(() => {

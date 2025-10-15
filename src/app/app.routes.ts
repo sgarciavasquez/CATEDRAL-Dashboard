@@ -9,36 +9,47 @@ import { ResetPasswordPage } from './features/auth/forgot-password/reset-passwor
 import { ProfilePage } from './features/profile.users/profile.page';
 import { authGuard } from './shared/services/authservice/auth.guard';
 
+
 export const routes: Routes = [
   { path: '', component: HomeComponent, title: 'Catedral Perfumes' },
 
   { path: 'cart', component: CartPage, title: 'Carro' },
+
   {
     path: 'catalogo',
-    loadComponent: () =>
-      import('./features/catalog/catalog.page/catalog.page')
-        .then(m => m.CatalogPage), 
+    loadComponent: () => import('./features/catalog/catalog.page/catalog.page')
+      .then(m => m.CatalogPage),
   },
   {
     path: 'producto/:id',
-    loadComponent: () =>
-      import('./features/catalog/product.info/product.info')
-        .then(m => m.ProductInfo),
+    loadComponent: () => import('./features/catalog/product.info/product.info')
+      .then(m => m.ProductInfo),
   },
 
+  // auth
   { path: 'auth/login', component: LoginPage, title: 'Ingresar' },
   { path: 'auth/register', component: RegisterPage, title: 'Registro' },
-
   { path: 'auth/forgot-password', component: ForgotPasswordPage, title: 'Recuperar contraseña' },
   { path: 'reset-password', component: ResetPasswordPage, title: 'Restablecer contraseña' },
 
+  // SOLO LOGUEADO (cualquier rol)
   {
     path: 'perfil',
-    loadComponent: () =>
-      import('./features/profile.users/profile.page').then(m => m.ProfilePage),
+    loadComponent: () => import('./features/profile.users/profile.page').then(m => m.ProfilePage),
     canActivate: [authGuard],
-    title: 'Mi perfil'
+    title: 'Mi perfil',
+  },
+
+  {
+    path: 'admin/pedidos',
+    canActivate: [authGuard],
+    data: { roles: ['admin'] },
+    loadComponent: () =>
+      import('./features/home/admin/orders/admin-orders.page')
+        .then(m => m.AdminOrdersPage),
+    title: 'Administrar pedidos',
   },
 
   { path: '**', redirectTo: '' },
 ];
+

@@ -1,15 +1,15 @@
-// src/app/shared/components/header/header.ts
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { NgIf, AsyncPipe } from '@angular/common';
 import { AuthService } from '../../services/authservice/auth';
 import { CartService } from '../../services/cartservice/cart';
 import { map } from 'rxjs';
+import { MatIconModule } from '@angular/material/icon';  
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, NgIf, AsyncPipe],
+  imports: [RouterLink, NgIf, AsyncPipe, MatIconModule],  
   templateUrl: './header.html',
   styleUrls: ['./header.css'],
 })
@@ -18,8 +18,12 @@ export class HeaderComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
 
-  count$ = this.cart.items$.pipe(map(items => items.reduce((s, it) => s + it.qty, 0)));
-  user$  = this.auth.user$;
+  count$   = this.cart.items$.pipe(map(items => items.reduce((s, it) => s + it.qty, 0)));
+  user$    = this.auth.user$;
+  isAdmin$ = this.auth.isAdmin$;
 
-  logout() { this.auth.logout(); this.router.navigateByUrl('/'); }
+  logout() {
+    this.auth.logout();
+    this.router.navigateByUrl('/');
+  }
 }

@@ -1,48 +1,69 @@
 <header class="w-full bg-[#2f3f56] text-white shadow">
-  <div class="container-7xl py-3 flex items-center gap-6">
+  <div class="container-7xl py-3 grid grid-cols-[auto_1fr_auto] items-center gap-4 relative">
+    <!-- Logo a la izquierda -->
+    <a routerLink="/" class="flex items-center gap-2">
+      <img src="assets/logo_bl.png" alt="Catedral Perfumes" class="h-9 w-auto" />
+    </a>
 
-    <!-- Logo -->
-    <a routerLink="/" class="flex items-center gap-3 shrink-0">
-      <img src="assets/logo_bl.png" alt="Catedral Perfumes" class="h-10 w-auto" />
-      <div class="leading-4 hidden sm:block">
-        <div class="tracking-[0.25em] text-2xl font-bold">CATEDRAL</div>
-        <div class="text-xs tracking-[0.35em]">PERFUMES</div>
+    <!-- === MARCA CENTRADA FIJA === -->
+    <a routerLink="/"
+       class="absolute left-1/2 -translate-x-1/2 text-center leading-tight select-none">
+      <div class="uppercase font-bold text-[26px] md:text-[30px] tracking-[0.32em]">
+        CATEDRAL
+      </div>
+      <div class="uppercase text-[10px] md:text-[11px] tracking-[0.42em] opacity-90">
+        PERFUMES
       </div>
     </a>
 
-    <!-- Buscador pill -->
-    <div class="flex-1 flex justify-center">
-      <div class="relative w-full max-w-lg">
+    <!-- Buscador + iconos a la derecha -->
+    <div class="flex items-center gap-3 justify-self-end">
+      <!-- Buscador compacto -->
+      <div class="relative w-[220px] sm:w-[260px]">
         <input
-          class="w-full rounded-full bg-white text-stone-900 pl-4 pr-10 py-2 placeholder:text-stone-400 outline-none"
+          class="w-full rounded-full bg-white text-stone-900 pl-4 pr-9 py-2 placeholder:text-stone-400 outline-none"
           placeholder="Buscar perfumes..." type="search" />
-        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500">🔍</span>
+        <mat-icon class="!absolute right-2 top-1/2 -translate-y-1/2 !text-stone-500 !text-[20px]">search</mat-icon>
       </div>
-    </div>
 
-    <!-- Sesión + carrito -->
-    <nav class="flex items-center gap-4 text-sm">
-      <ng-container *ngIf="(user$ | async) as u; else guest">
-        <a [routerLink]="['/perfil']" class="flex items-center gap-2 hover:underline">
-          <span class="opacity-80 hidden md:inline">Hola, {{ u.name }}</span>
-          <span class="grid place-items-center w-8 h-8 rounded-full bg-white/10">👤</span>
+      <!-- Iconos (solo iconos; tooltip con title) -->
+      <ng-container *ngIf="(user$ | async) as _; else guest">
+        <!-- Perfil -->
+        <a [routerLink]="['/perfil']" title="Perfil" aria-label="Perfil"
+           class="grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition">
+          <mat-icon>person</mat-icon>
         </a>
 
-        <button class="underline" (click)="logout()">Salir</button>
+        <!-- Administrar pedidos (solo admin) -->
+        <a *ngIf="isAdmin$ | async" routerLink="/admin/pedidos" title="Administrar pedidos" aria-label="Administrar pedidos"
+           class="grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition">
+          <mat-icon>inventory_2</mat-icon>
+        </a>
+
+        <!-- Salir -->
+        <button title="Salir" aria-label="Salir"
+                class="grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition"
+                (click)="logout()">
+          <mat-icon>logout</mat-icon>
+        </button>
       </ng-container>
+
       <ng-template #guest>
-        <a routerLink="/auth/login" class="underline">Ingresar</a>
-        <a routerLink="/auth/register" class="underline">Registrarse</a>
+        <a routerLink="/auth/login" title="Ingresar" aria-label="Ingresar"
+           class="underline">Ingresar</a>
+        <a routerLink="/auth/register" title="Registrarse" aria-label="Registrarse"
+           class="underline">Registrarse</a>
       </ng-template>
 
-      <a routerLink="/cart" class="relative px-3 py-2">
-        🛍️
+      <!-- Carrito -->
+      <a routerLink="/cart" title="Carro" aria-label="Carro"
+         class="relative grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition">
+        <mat-icon>shopping_cart</mat-icon>
         <span *ngIf="(count$ | async) as count"
-          class="absolute -top-2 -right-2 text-xs rounded-full bg-amber-400 text-black px-1.5">
+              class="absolute -top-1.5 -right-1.5 text-[10px] rounded-full bg-amber-400 text-black px-1.5 py-[1px] leading-none">
           {{ count }}
         </span>
       </a>
-    </nav>
+    </div>
   </div>
-
 </header>
