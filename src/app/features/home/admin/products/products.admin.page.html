@@ -30,13 +30,11 @@
                             <td class="py-2">{{ p.name }}</td>
                             <td class="py-2">${{ p.price | number }}</td>
                             <td class="py-2">
-                                <!-- muestra ids o nombres si vienen poblados -->
                                 <ng-container *ngIf="p.categories as cats">
                                     <ng-container *ngIf="cats.length; else noCat">
                                         <ng-container *ngIf="typeof cats[0] === 'string'; else catObjs">
                                             <ng-container *ngFor="let id of cats as ids; let i = index">
-                                                {{ id }}
-                                                <span *ngIf="i < (ids.length - 1)">, </span>
+                                                {{ id }}<span *ngIf="i < (ids.length - 1)">, </span>
                                             </ng-container>
                                         </ng-container>
                                         <ng-template #catObjs>
@@ -47,7 +45,6 @@
                                         </ng-template>
                                     </ng-container>
                                 </ng-container>
-
                                 <ng-template #noCat>—</ng-template>
                             </td>
                             <td class="py-2">
@@ -87,19 +84,26 @@
                         <input formControlName="img_url" class="w-full border rounded px-3 py-2">
                     </div>
 
-                    <!-- CATEGORÍAS -->
-                    <mat-form-field appearance="fill" class="w-full cat-select">
+                    <!-- CHIPS SELECCIONADAS ARRIBA -->
+                    <div class="selected-chips" *ngIf="(form.get('categoriesIds')?.value?.length || 0) > 0">
+                        <span class="chip" *ngFor="let id of form.get('categoriesIds')?.value">
+                            {{ getCategoryName(id) }}
+                            <button type="button" class="chip-x" (click)="unselectCategory(id)"
+                                aria-label="Quitar">×</button>
+                        </span>
+                        <button type="button" class="chip clear" (click)="clearCategories()"
+                            aria-label="Limpiar categorías">
+                            Limpiar
+                        </button>
+                    </div>
+
+                    <!-- SELECT MULTIPLE -->
+                    <mat-form-field appearance="fill" class="w-full">
                         <mat-label>Selecciona categorías</mat-label>
                         <mat-select formControlName="categoriesIds" multiple [panelClass]="'cat-panel'">
+                            <!-- Trigger vacío: evita que se vean “diseñador, nicho, …” -->
                             <mat-select-trigger>
-                                <div class="cat-trigger-chips">
-                                    <span *ngFor="let id of form.get('categoriesIds')?.value | slice:0:3" class="chip">
-                                        {{ getCategoryName(id) }}
-                                    </span>
-                                    <span *ngIf="(form.get('categoriesIds')?.value?.length || 0) > 3" class="chip more">
-                                        +{{ (form.get('categoriesIds')?.value?.length || 0) - 3 }} más
-                                    </span>
-                                </div>
+                            
                             </mat-select-trigger>
 
                             <mat-option *ngFor="let c of categories()" [value]="c._id">
@@ -107,18 +111,15 @@
                             </mat-option>
                         </mat-select>
                     </mat-form-field>
-
-                    <!-- BOTONES (para crear/guardar y limpiar) -->
+                    <!-- BOTONES -->
                     <div class="flex gap-2 mt-2">
                         <button class="px-4 py-2 rounded bg-[#2f3f56] text-white" type="submit"
                             [disabled]="form.invalid">
                             {{ editingId() ? 'Guardar cambios' : 'Crear' }}
                         </button>
-                        <button class="px-4 py-2 rounded border" type="button" (click)="startCreate()">
-                            Limpiar
-                        </button>
+                        <button class="px-4 py-2 rounded border" type="button" (click)="startCreate()">Limpiar</button>
                     </div>
-
+                    <button class="mt-1" mat-stroked-button type="button" (click)="openCategoriesDialog()"> Administrar categorías </button>
                 </form>
             </div>
         </section>
