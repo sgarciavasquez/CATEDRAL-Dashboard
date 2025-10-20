@@ -1,46 +1,44 @@
 <header class="w-full bg-[#2f3f56] text-white shadow">
-  <div class="container-7xl py-3 grid grid-cols-[auto_1fr_auto] items-center gap-4 relative">
-    <!-- Logo a la izquierda -->
-    <a routerLink="/" class="flex items-center gap-2">
+  <!-- grilla simétrica: 1fr auto 1fr -->
+  <div class="container-7xl py-3 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+    <!-- Logo -->
+    <a routerLink="/" class="flex items-center gap-2 justify-self-start">
       <img src="assets/logo_bl.png" alt="Catedral Perfumes" class="h-9 w-auto" />
     </a>
 
-    <!-- === MARCA CENTRADA FIJA === -->
-    <a routerLink="/"
-       class="absolute left-1/2 -translate-x-1/2 text-center leading-tight select-none">
-      <div class="uppercase font-bold text-[26px] md:text-[30px] tracking-[0.32em]">
+    <!-- Marca CENTRADA (ya no es absolute) -->
+    <a routerLink="/" class="justify-self-center text-center leading-tight select-none">
+      <div class="uppercase font-bold text-[22px] sm:text-[24px] md:text-[28px] tracking-[0.28em] md:tracking-[0.32em]">
         CATEDRAL
       </div>
-      <div class="uppercase text-[10px] md:text-[11px] tracking-[0.42em] opacity-90">
+      <div class="uppercase text-[9px] sm:text-[10px] md:text-[11px] tracking-[0.36em] md:tracking-[0.42em] opacity-90">
         PERFUMES
       </div>
     </a>
 
-    <!-- Buscador + iconos a la derecha -->
+    <!-- Buscador + iconos (derecha) -->
     <div class="flex items-center gap-3 justify-self-end">
-      <!-- Buscador compacto -->
-      <div class="relative w-[220px] sm:w-[260px]">
+      <!-- Buscador responsive -->
+      <div class="relative w-[180px] sm:w-[220px] md:w-[280px]">
         <input
           class="w-full rounded-full bg-white text-stone-900 pl-4 pr-9 py-2 placeholder:text-stone-400 outline-none"
           placeholder="Buscar perfumes..." type="search" />
         <mat-icon class="!absolute right-2 top-1/2 -translate-y-1/2 !text-stone-500 !text-[20px]">search</mat-icon>
       </div>
 
-      <!-- Iconos (solo iconos; tooltip con title) -->
+      <!-- Iconos -->
       <ng-container *ngIf="(user$ | async) as _; else guest">
-        <!-- Perfil -->
         <a [routerLink]="['/perfil']" title="Perfil" aria-label="Perfil"
            class="grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition">
           <mat-icon>person</mat-icon>
         </a>
 
-        <!-- Administrar pedidos (solo admin) -->
-        <a *ngIf="isAdmin$ | async" routerLink="/admin/pedidos" title="Administrar pedidos" aria-label="Administrar pedidos"
+        <a *ngIf="isAdmin$ | async" routerLink="/admin/pedidos" title="Administrar pedidos"
+           aria-label="Administrar pedidos"
            class="grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition">
           <mat-icon>inventory_2</mat-icon>
         </a>
 
-        <!-- Salir -->
         <button title="Salir" aria-label="Salir"
                 class="grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition"
                 (click)="logout()">
@@ -49,13 +47,10 @@
       </ng-container>
 
       <ng-template #guest>
-        <a routerLink="/auth/login" title="Ingresar" aria-label="Ingresar"
-           class="underline">Ingresar</a>
-        <a routerLink="/auth/register" title="Registrarse" aria-label="Registrarse"
-           class="underline">Registrarse</a>
+        <a routerLink="/auth/login" title="Ingresar" aria-label="Ingresar" class="underline">Ingresar</a>
+        <a routerLink="/auth/register" title="Registrarse" aria-label="Registrarse" class="underline">Registrarse</a>
       </ng-template>
 
-      <!-- Carrito -->
       <a routerLink="/cart" title="Carro" aria-label="Carro"
          class="relative grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition">
         <mat-icon>shopping_cart</mat-icon>

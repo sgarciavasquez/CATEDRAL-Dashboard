@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, HeaderComponent, FooterComponent, FormsModule, RouterLink],
   templateUrl: './admin-orders.page.html',
+  styleUrls: ['./admin-orders.page.css'],
 })
 export class AdminOrdersPage implements OnInit, OnDestroy {
   private orders = inject(OrdersService);

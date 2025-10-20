@@ -1,0 +1,56 @@
+<div class="rounded-xl border bg-white p-4">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="font-medium">Categorías</h3>
+  </div>
+
+  <!-- Crear -->
+  <form class="flex gap-2 mb-4" [formGroup]="createForm" (ngSubmit)="create()">
+    <mat-form-field class="flex-1" appearance="outline">
+      <mat-label>Nueva categoría</mat-label>
+      <input matInput formControlName="name" placeholder="Ej: Nicho" autocomplete="off" />
+      <mat-hint *ngIf="!createForm.invalid">Ingresa un nombre único.</mat-hint>
+      <mat-error *ngIf="createForm.get('name')?.hasError('required')">Requerido</mat-error>
+      <mat-error *ngIf="createForm.get('name')?.hasError('minlength')">Mínimo 2 caracteres</mat-error>
+      <mat-error *ngIf="createForm.get('name')?.hasError('duplicate')">Ya existe una categoría con ese nombre</mat-error>
+    </mat-form-field>
+
+    <button mat-flat-button color="primary"
+            [disabled]="createForm.invalid || creating()">
+      {{ creating() ? 'Creando…' : 'Crear' }}
+    </button>
+  </form>
+
+  <!-- Lista -->
+  <div class="space-y-2">
+    <div *ngFor="let c of categories(); trackBy: trackById"
+         class="flex items-center gap-2 p-2 rounded-lg ring-1 ring-[#e8ecf4]">
+      <ng-container *ngIf="editId() !== c._id; else editRow">
+        <div class="flex-1 text-sm">{{ c.name }}</div>
+        <button mat-icon-button (click)="startEdit(c)" aria-label="Editar">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="remove(c)" aria-label="Eliminar">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </ng-container>
+
+      <ng-template #editRow>
+        <form class="flex items-center gap-2 w-full" [formGroup]="editForm" (ngSubmit)="saveEdit()">
+          <mat-form-field class="flex-1" appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input #editInput matInput formControlName="name" autocomplete="off" />
+            <mat-error *ngIf="editForm.get('name')?.hasError('required')">Requerido</mat-error>
+            <mat-error *ngIf="editForm.get('name')?.hasError('minlength')">Mínimo 2 caracteres</mat-error>
+            <mat-error *ngIf="editForm.get('name')?.hasError('duplicate')">Ya existe una categoría con ese nombre</mat-error>
+          </mat-form-field>
+          <button mat-stroked-button type="button" (click)="cancelEdit()">Cancelar</button>
+          <button mat-flat-button color="primary" [disabled]="editForm.invalid || saving()">Guardar</button>
+        </form>
+      </ng-template>
+    </div>
+
+    <div *ngIf="categories().length===0" class="text-sm text-neutral-500 py-4">
+      Aún no hay categorías.
+    </div>
+  </div>
+</div>

@@ -8,6 +8,7 @@ import { ForgotPasswordPage } from './features/auth/forgot-password/forgot-passw
 import { ResetPasswordPage } from './features/auth/forgot-password/reset-password.page';
 import { ProfilePage } from './features/profile.users/profile.page';
 import { authGuard } from './shared/services/authservice/auth.guard';
+import { ProductsAdminPage } from './features/home/admin/products/products.admin.pages';
 
 
 export const routes: Routes = [
@@ -49,6 +50,8 @@ export const routes: Routes = [
         .then(m => m.AdminOrdersPage),
     title: 'Administrar pedidos',
   },
+
+  { path: 'admin/products', component: ProductsAdminPage, canActivate: [authGuard], title: 'Administrar productos' },
 
   { path: '**', redirectTo: '' },
 ];
