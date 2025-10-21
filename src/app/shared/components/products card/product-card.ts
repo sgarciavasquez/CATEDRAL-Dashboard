@@ -13,7 +13,6 @@ import { RouterLink } from '@angular/router';
   styleUrls: ['./product-card.css'],
 })
 export class ProductCardComponent {
-  // ⬇️ Forzamos UiProduct para evitar perder inStock/categoryNames
   @Input() product!: UiProduct;
   @Input() variant: 'default' | 'popular' = 'default';
 

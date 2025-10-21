@@ -1,13 +1,6 @@
 export interface ApiCategory {
   _id: string;
-  name: string; 
-}
-
-export interface ApiStock {
-  _id: string;
-  quantity: number;
-  reserved: number;
-  available?: number; 
+  name: string;
 }
 
 export interface ApiProduct {
@@ -21,3 +14,13 @@ export interface ApiProduct {
   createdAt?: string;
   updatedAt?: string;
 }
+
+// product.api.ts
+export interface ApiStock {
+  _id: string;
+  quantity?: number | string;
+  reserved?: number | string;
+  available?: number | string;
+}
+
+

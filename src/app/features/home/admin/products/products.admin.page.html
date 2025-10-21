@@ -29,7 +29,7 @@
                             <td class="py-2 font-mono">{{ p.code }}</td>
 
                             <td class="py-2">{{ p.name }}</td>
-                            
+
                             <td class="py-2">{{ displayCategories(p) }} </td>
 
                             <td class="py-2">${{ p.price | number }}</td>
@@ -98,6 +98,25 @@
                             </mat-option>
                         </mat-select>
                     </mat-form-field>
+
+                    <!-- CREAR: Stock inicial (ya lo tienes) -->
+                    <div *ngIf="!editingId()">
+                        <label class="block text-xs text-neutral-600 mb-1">Stock inicial</label>
+                        <input type="number" formControlName="initialQuantity" min="0"
+                            class="w-full border rounded px-3 py-2">
+                    </div>
+
+                    <!-- EDITAR: Sumar stock al guardar -->
+                    <div *ngIf="editingId()" class="flex items-center gap-2">
+                        <div>
+                            <label class="block text-xs text-neutral-600 mb-1">Agregar stock</label>
+                            <input type="number" [formControl]="addStockCtrl" min="0"
+                                class="w-28 border rounded px-3 py-2" placeholder="0">
+                        </div>
+                        <div class="text-xs text-neutral-500">Se sumará al guardar.</div>
+                    </div>
+
+
                     <!-- BOTONES -->
                     <div class="flex gap-2 mt-2">
                         <button class="px-4 py-2 rounded bg-[#2f3f56] text-white" type="submit"

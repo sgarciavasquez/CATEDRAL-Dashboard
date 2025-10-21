@@ -26,12 +26,13 @@
           {{ product.price | currency:'CLP':'symbol-narrow':'1.0-0' }}
         </div>
 
-        <div class="text-[11px] font-medium" [class.text-green-700]="product.inStock > 0"
+        <div class="mt-1 text-sm" [class.text-green-700]="product.inStock > 0"
           [class.text-red-600]="product.inStock === 0">
-          {{ product.inStock > 0 ? 'Stock disponible' : 'Sin stock' }}
+          {{ product.inStock > 0 ? ('Stock disponible: ' + product.inStock) : 'Sin stock' }}
         </div>
       </div>
     </div>
+
 
     <!-- acciones -->
     <div class="flex items-center gap-2">

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable, of, switchMap, forkJoin } from 'rxjs';
+import { Observable, of, switchMap, forkJoin, map } from 'rxjs';
 import { ApiProduct } from './product.api';
 import { UiProduct, toUiProduct } from './product.ui';
 import { CategoryService } from './category.service';
@@ -10,10 +10,9 @@ export interface SaveProductPayload {
   name: string;
   price: number;
   img_url?: string;
-  categories?: string[];      // IDs de categorías
-  initialQuantity?: number;   // SOLO en create (tu back lo usa para crear el stock)
+  categories?: string[];       // IDs
+  initialQuantity?: number;    // SOLO al crear
 }
-
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
@@ -21,6 +20,7 @@ export class ProductService {
   private base = '/api/products';
   private categoryService = inject(CategoryService);
 
+  // ====== Productos ======
   list(): Observable<ApiProduct[]> {
     return this.http.get<ApiProduct[]>(this.base);
   }
@@ -29,59 +29,69 @@ export class ProductService {
     return this.http.get<ApiProduct>(`${this.base}/${id}`);
   }
 
-
-
-
+  // UI list (enriquece con categorías y completa stock cuando falte)
   listUi(): Observable<UiProduct[]> {
-    // normaliza texto para búsquedas o comparaciones
     const norm = (s: string) =>
-      (s || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .trim();
+      (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 
     return this.list().pipe(
-      switchMap((products: ApiProduct[]) => {
-        if (!products?.length) return of<UiProduct[]>([]);
+      switchMap((products: ApiProduct[] = []) => {
+        if (!products.length) return of<UiProduct[]>([]);
 
-        // ✅ usamos CategoryService para traer categorías reales
-        return this.categoryService.list().pipe(
-          map((categories) => {
-            const catMap = new Map(categories.map(c => [c._id, c.name]));
+        const idsNeedingDetail = products
+          .filter(p => {
+            const s: any = Array.isArray(p.stock) ? p.stock?.[0] : (p as any).stock;
+            return !(s && (s.available != null || s.quantity != null || s.reserved != null));
+          })
+          .map(p => p._id);
 
-            return products.map((p) => {
-              const ui = toUiProduct(p);
+        const details$ = idsNeedingDetail.length
+          ? forkJoin(idsNeedingDetail.map(id => this.get(id)))
+          : of<ApiProduct[]>([]);
 
-              // reemplazamos IDs por nombres reales desde la API
-              const catNames = (Array.isArray(p.categories) ? p.categories : [])
-                .map((id: any) => catMap.get(id) || '')
-                .filter(Boolean);
+        return details$.pipe(
+          switchMap(details => {
+            const byId = new Map(details.map(d => [d._id, d]));
 
-              // normalizamos solo para mantener consistencia visual
-              const categoryNames = catNames.map(norm);
+            return this.categoryService.list().pipe(
+              map(categories => {
+                const catMap = new Map(categories.map(c => [c._id, c.name]));
 
-              return { ...ui, categoryNames } as UiProduct;
-            });
+                return products.map(orig => {
+                  const enriched = byId.get(orig._id) ?? orig;
+                  const base = toUiProduct(enriched);
+
+                  const rawNames = (Array.isArray(enriched.categories) ? enriched.categories : [])
+                    .map((c: any) => {
+                      if (typeof c === 'string') return catMap.get(c) || '';
+                      if (c && typeof c === 'object') return c.name || catMap.get(c._id) || '';
+                      return '';
+                    })
+                    .filter(Boolean);
+
+                  const categoryNames = (rawNames.length ? rawNames : base.categoryNames || []).map(norm);
+                  return { ...base, categoryNames } as UiProduct;
+                });
+              })
+            );
           })
         );
       })
     );
   }
 
+  // ====== Stock (única función, acorde a tu API) ======
+  increaseStockByStockId(stockId: string, amount: number) {
+    return this.http.post<ApiProduct>(`/api/stock/${stockId}/add`, { amount });
+  }
 
-
-
-
-
-  // ========= CRUD =========
+  // ====== CRUD ======
   create(payload: SaveProductPayload): Observable<ApiProduct> {
     return this.http.post<ApiProduct>(this.base, payload);
   }
 
   update(id: string, payload: Partial<SaveProductPayload>): Observable<ApiProduct> {
-    // en update el back ignora initialQuantity (lo usó solo en create)
-    const { initialQuantity, ...rest } = payload;
+    const { initialQuantity, ...rest } = payload; // el back ignora initialQuantity en update
     return this.http.patch<ApiProduct>(`${this.base}/${id}`, rest);
   }
 

@@ -17,6 +17,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { CategoriesCrudComponent } from '../categorys/categories-crud.component';
+import { of, switchMap } from 'rxjs';
 
 @Component({
   standalone: true,
@@ -26,8 +27,6 @@ import { CategoriesCrudComponent } from '../categorys/categories-crud.component'
     ReactiveFormsModule,
     HeaderComponent,
     FooterComponent,
-
-    // Material
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
@@ -51,14 +50,19 @@ export class ProductsAdminPage implements OnInit {
   categories = signal<ApiCategory[]>([]);
   loadingCategories = signal<boolean>(true);
 
+  /** id del documento de stock (para /api/stock/:stockId/add) */
+  currentStockId: string | null = null;
+
+  /** cuánto sumar al guardar */
+  addStockCtrl = this.fb.control<number | null>(0);
+
   form = this.fb.group({
     code: ['', [Validators.required]],
     name: ['', [Validators.required]],
     price: [0, [Validators.required, Validators.min(0)]],
     img_url: [''],
     categoriesIds: this.fb.control<string[]>([]),
-    // solo al crear
-    initialQuantity: [0],
+    initialQuantity: [0], // solo al crear
   });
 
   ngOnInit(): void {
@@ -86,18 +90,20 @@ export class ProductsAdminPage implements OnInit {
   // ===== form actions =====
   startCreate() {
     this.editingId.set(null);
+    this.currentStockId = null;
     this.form.reset({
-      code: '',
-      name: '',
-      price: 0,
-      img_url: '',
-      categoriesIds: [],
-      initialQuantity: 0,
+      code: '', name: '', price: 0, img_url: '',
+      categoriesIds: [], initialQuantity: 0,
     });
+    this.addStockCtrl.setValue(0);
   }
 
   startEdit(p: ApiProduct) {
     this.editingId.set(p._id);
+
+    // intenta tomar stockId desde la lista (si vino)
+    const s: any = Array.isArray((p as any).stock) ? (p as any).stock?.[0] : (p as any).stock;
+    this.currentStockId = s?._id ?? null;
 
     const catIds: string[] =
       Array.isArray(p.categories)
@@ -107,13 +113,19 @@ export class ProductsAdminPage implements OnInit {
         : [];
 
     this.form.reset({
-      code: p.code,
-      name: p.name,
-      price: p.price,
-      img_url: p.img_url ?? '',
-      categoriesIds: catIds,
+      code: p.code, name: p.name, price: p.price,
+      img_url: p.img_url ?? '', categoriesIds: catIds,
       initialQuantity: 0, // no se usa al editar
     });
+    this.addStockCtrl.setValue(0);
+
+    // si no teníamos stockId, lo traemos del detalle
+    if (!this.currentStockId) {
+      this.products.get(p._id).subscribe(full => {
+        const fs: any = Array.isArray((full as any).stock) ? (full as any).stock?.[0] : (full as any).stock;
+        this.currentStockId = fs?._id ?? null;
+      });
+    }
   }
 
   openCategoriesDialog() {
@@ -127,8 +139,8 @@ export class ProductsAdminPage implements OnInit {
 
   submit() {
     if (this.form.invalid) return;
-    const raw = this.form.getRawValue();
 
+    const raw = this.form.getRawValue();
     const payload: SaveProductPayload = {
       code: raw.code!.trim(),
       name: raw.name!.trim(),
@@ -138,11 +150,39 @@ export class ProductsAdminPage implements OnInit {
       initialQuantity: this.editingId() ? undefined : Number(raw.initialQuantity ?? 0),
     };
 
-    const req$ = this.editingId()
-      ? this.products.update(this.editingId()!, payload)
-      : this.products.create(payload);
+    const id = this.editingId();
 
-    req$.subscribe({
+    // === EDITAR ===
+    if (id) {
+      const add = Number(this.addStockCtrl.value ?? 0);
+
+      this.products.update(id, payload).pipe(
+        switchMap(() => {
+          // si no hay que sumar stock, terminamos
+          if (!(Number.isFinite(add) && add > 0)) return of(null);
+
+          // si ya tenemos stockId, sumamos; si no, pedimos el detalle y sumamos
+          if (this.currentStockId) {
+            return this.products.increaseStockByStockId(this.currentStockId, add);
+          }
+          return this.products.get(id).pipe(
+            switchMap(full => {
+              const s: any = Array.isArray((full as any).stock) ? (full as any).stock?.[0] : (full as any).stock;
+              const stockId = s?._id;
+              return stockId ? this.products.increaseStockByStockId(stockId, add) : of(null);
+            })
+          );
+        })
+      ).subscribe({
+        next: () => { this.startCreate(); this.load(); },
+        error: err => alert(err?.error?.message ?? 'No se pudo guardar')
+      });
+
+      return;
+    }
+
+    // === CREAR === (usa initialQuantity en el backend)
+    this.products.create(payload).subscribe({
       next: () => { this.startCreate(); this.load(); },
       error: err => alert(err?.error?.message ?? 'No se pudo guardar')
     });
@@ -180,14 +220,8 @@ export class ProductsAdminPage implements OnInit {
     const cats: any[] = (p as any)?.categories ?? [];
     if (!cats.length) return '—';
     if (typeof cats[0] === 'string') {
-      return (cats as string[])
-        .map((id) => this.getCategoryName(id) || id)
-        .join(', ');
+      return (cats as string[]).map(id => this.getCategoryName(id) || id).join(', ');
     }
-    return (cats as any[])
-      .map((c) => c?.name ?? c?._id ?? '—')
-      .join(', ');
+    return (cats as any[]).map(c => c?.name ?? c?._id ?? '—').join(', ');
   }
-
-
 }

@@ -30,7 +30,8 @@ function toNum(v: unknown): number {
 
 function availableFromItem(s: Partial<ApiStock> | undefined): number {
   if (!s) return 0;
-  if (s.hasOwnProperty('available') && s.available !== undefined && s.available !== null) {
+  if (Object.prototype.hasOwnProperty.call(s, 'available')
+      && s.available !== undefined && s.available !== null) {
     return Math.max(0, toNum(s.available));
   }
   const q = toNum((s as any).quantity);
@@ -67,4 +68,6 @@ export function toUiProduct(p: ApiProduct): UiProduct {
     categoryKeys,
     inStock: totalAvailable(p.stock), // stock real
   };
+
+  
 }
