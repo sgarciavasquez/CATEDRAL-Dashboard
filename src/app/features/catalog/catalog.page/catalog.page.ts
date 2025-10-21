@@ -8,9 +8,8 @@ import { UiProduct } from '../../../shared/services/productservice/product.ui';
 import { ProductCardComponent } from '../../../shared/components/products card/product-card';
 import { HeaderComponent } from '../../../shared/components/header/header';
 import { FooterComponent } from '../../../shared/components/footer/footer';
-
-// Claves de RUTA (no toques product.ui.ts)
-type CatRouteKey = 'nicho-mujer' | 'nicho-hombre' | 'mujer-dis' | 'hombre-dis' | 'nicho';
+import { CategoryService } from '../../../shared/services/productservice/category.service';
+import { ApiCategory } from '../../../shared/services/productservice/product.api';
 
 @Component({
   selector: 'app-catalog-page',
@@ -22,59 +21,47 @@ type CatRouteKey = 'nicho-mujer' | 'nicho-hombre' | 'mujer-dis' | 'hombre-dis' |
 export class CatalogPage implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private productsSrv = inject(ProductService);
+  private categoriesSrv = inject(CategoryService);
 
+  categories: ApiCategory[] = [];
   all: UiProduct[] = [];
   items: UiProduct[] = [];
   loading = true;
-  selectedKey: CatRouteKey | '' = '';
+  selectedCategory: string = '';
 
   private sub?: Subscription;
 
-  private has(names: string[], k: 'mujer'|'hombre'|'nicho') {
-    return names.includes(k);
-  }
-
-  /** Lógica de filtrado exacta que pediste */
-  private matches(key: CatRouteKey, p: UiProduct): boolean {
-    const names = (p.categoryNames ?? []).map(n => (n || '').toLowerCase());
-    const M = this.has(names, 'mujer');
-    const H = this.has(names, 'hombre');
-    const N = this.has(names, 'nicho');
-
-    switch (key) {
-      case 'nicho-mujer':  return N && M;     // Nicho + Mujer
-      case 'nicho-hombre': return N && H;     // Nicho + Hombre
-      case 'mujer-dis':    return M && !N;    // Diseñador Mujer (sin nicho)
-      case 'hombre-dis':   return H && !N;    // Diseñador Hombre (sin nicho)
-      case 'nicho':        return N;          // Cualquier Nicho
-      default:             return true;
-    }
+  /** Filtra productos según categoría seleccionada */
+  private matchesCategory(p: UiProduct): boolean {
+    if (!this.selectedCategory) return true;
+    const names = (p.categoryNames ?? []).map(n => n.toLowerCase());
+    return names.includes(this.selectedCategory.toLowerCase());
   }
 
   get title(): string {
-    switch (this.selectedKey) {
-      case 'nicho-mujer':  return 'Perfumes de Nicho para Mujeres';
-      case 'nicho-hombre': return 'Perfumes de Nicho para Hombres';
-      case 'mujer-dis':    return 'Perfumes de Diseñador para Mujeres';
-      case 'hombre-dis':   return 'Perfumes de Diseñador para Hombres';
-      case 'nicho':        return 'Perfumes de Nicho';
-      default:             return 'Perfumes';
-    }
+    if (!this.selectedCategory) return 'Perfumes';
+    return `Perfumes de ${this.selectedCategory.charAt(0).toUpperCase()}${this.selectedCategory.slice(1)}`;
   }
 
   ngOnInit(): void {
     const data$ = this.productsSrv.listUi();
-    const qp$   = this.route.queryParams;
+    const qp$ = this.route.queryParams;
+    this.categoriesSrv.list().subscribe({
+      next: (cats) => this.categories = cats,
+      error: () => console.error('Error cargando categorías')
+    });
 
     this.sub = combineLatest([data$, qp$]).pipe(
       map(([list, params]) => {
         this.all = list ?? [];
         const raw = (params['cat'] ?? '').toLowerCase();
-        const allowed: CatRouteKey[] = ['nicho-mujer','nicho-hombre','mujer-dis','hombre-dis','nicho'];
-        this.selectedKey = (allowed.includes(raw as CatRouteKey) ? raw as CatRouteKey : '');
+        this.selectedCategory = raw;
 
-        if (!this.selectedKey) return this.all;
-        return this.all.filter(p => this.matches(this.selectedKey as CatRouteKey, p));
+        // Si no hay categoría, muestra todo
+        if (!this.selectedCategory) return this.all;
+
+        // Filtra productos por categoría seleccionada
+        return this.all.filter(p => this.matchesCategory(p));
       })
     ).subscribe(filtered => {
       this.items = filtered;

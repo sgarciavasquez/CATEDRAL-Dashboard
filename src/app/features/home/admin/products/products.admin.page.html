@@ -19,34 +19,21 @@
                         <tr class="text-left text-neutral-500">
                             <th class="py-2">Código</th>
                             <th class="py-2">Nombre</th>
-                            <th class="py-2">Precio</th>
                             <th class="py-2">Categorías</th>
+                            <th class="py-2">Precio</th>
                             <th class="py-2 w-32">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr *ngFor="let p of list()" class="border-t">
                             <td class="py-2 font-mono">{{ p.code }}</td>
+
                             <td class="py-2">{{ p.name }}</td>
+                            
+                            <td class="py-2">{{ displayCategories(p) }} </td>
+
                             <td class="py-2">${{ p.price | number }}</td>
-                            <td class="py-2">
-                                <ng-container *ngIf="p.categories as cats">
-                                    <ng-container *ngIf="cats.length; else noCat">
-                                        <ng-container *ngIf="typeof cats[0] === 'string'; else catObjs">
-                                            <ng-container *ngFor="let id of cats as ids; let i = index">
-                                                {{ id }}<span *ngIf="i < (ids.length - 1)">, </span>
-                                            </ng-container>
-                                        </ng-container>
-                                        <ng-template #catObjs>
-                                            <ng-container *ngFor="let c of cats; let i = index">
-                                                {{ $any(c).name || $any(c)._id }}<span *ngIf="i < (cats.length - 1)">,
-                                                </span>
-                                            </ng-container>
-                                        </ng-template>
-                                    </ng-container>
-                                </ng-container>
-                                <ng-template #noCat>—</ng-template>
-                            </td>
+
                             <td class="py-2">
                                 <button class="px-2 py-1 rounded border mr-1" (click)="startEdit(p)">Editar</button>
                                 <button class="px-2 py-1 rounded border text-red-700"
@@ -103,7 +90,7 @@
                         <mat-select formControlName="categoriesIds" multiple [panelClass]="'cat-panel'">
                             <!-- Trigger vacío: evita que se vean “diseñador, nicho, …” -->
                             <mat-select-trigger>
-                            
+
                             </mat-select-trigger>
 
                             <mat-option *ngFor="let c of categories()" [value]="c._id">
@@ -119,7 +106,8 @@
                         </button>
                         <button class="px-4 py-2 rounded border" type="button" (click)="startCreate()">Limpiar</button>
                     </div>
-                    <button class="mt-1" mat-stroked-button type="button" (click)="openCategoriesDialog()"> Administrar categorías </button>
+                    <button class="mt-1" mat-stroked-button type="button" (click)="openCategoriesDialog()"> Administrar
+                        categorías </button>
                 </form>
             </div>
         </section>

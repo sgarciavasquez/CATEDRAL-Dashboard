@@ -176,4 +176,18 @@ export class ProductsAdminPage implements OnInit {
     ctrl.updateValueAndValidity();
   }
 
+  displayCategories(p: ApiProduct): string {
+    const cats: any[] = (p as any)?.categories ?? [];
+    if (!cats.length) return '—';
+    if (typeof cats[0] === 'string') {
+      return (cats as string[])
+        .map((id) => this.getCategoryName(id) || id)
+        .join(', ');
+    }
+    return (cats as any[])
+      .map((c) => c?.name ?? c?._id ?? '—')
+      .join(', ');
+  }
+
+
 }

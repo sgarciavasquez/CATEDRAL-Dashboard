@@ -2,29 +2,24 @@
 
 <main class="container-7xl py-6 grid grid-cols-12 gap-6">
   <!-- Sidebar categorías -->
+  <!-- Sidebar categorías -->
   <aside class="col-span-12 md:col-span-3">
     <div class="bg-white rounded-xl shadow ring-1 ring-[#e8ecf4] overflow-hidden">
       <div class="px-4 py-3 bg-[#2f3f56] text-white font-semibold text-sm">Categorías</div>
       <nav class="p-2 flex flex-col text-sm">
-        <a [routerLink]="['/catalogo']" [queryParams]="{ cat: 'nicho-mujer' }"
-           class="px-4 py-2 rounded hover:bg-stone-100"
-           [class.bg-[#e9eef8]]="selectedKey === 'nicho-mujer'">Nicho de Mujer</a>
 
-        <a [routerLink]="['/catalogo']" [queryParams]="{ cat: 'nicho-hombre' }"
-           class="px-4 py-2 rounded hover:bg-stone-100"
-           [class.bg-[#e9eef8]]="selectedKey === 'nicho-hombre'">Nicho Hombre</a>
+        <!-- Botón para ver todas -->
+        <a [routerLink]="['/catalogo']" class="px-4 py-2 rounded hover:bg-stone-100"
+          [class.bg-[#e9eef8]]="!selectedCategory">
+          Todas
+        </a>
 
-        <a [routerLink]="['/catalogo']" [queryParams]="{ cat: 'mujer-dis' }"
-           class="px-4 py-2 rounded hover:bg-stone-100"
-           [class.bg-[#e9eef8]]="selectedKey === 'mujer-dis'">Diseñador Mujer</a>
-
-        <a [routerLink]="['/catalogo']" [queryParams]="{ cat: 'hombre-dis' }"
-           class="px-4 py-2 rounded hover:bg-stone-100"
-           [class.bg-[#e9eef8]]="selectedKey === 'hombre-dis'">Diseñador Hombre</a>
-
-        <a [routerLink]="['/catalogo']" [queryParams]="{ cat: 'nicho' }"
-           class="px-4 py-2 rounded hover:bg-stone-100"
-           [class.bg-[#e9eef8]]="selectedKey === 'nicho'">Todos los Nicho</a>
+        <!-- ✅ Lista dinámica de categorías desde la API -->
+        <a *ngFor="let c of categories" [routerLink]="['/catalogo']" [queryParams]="{ cat: c.name }"
+          class="px-4 py-2 rounded hover:bg-stone-100 capitalize"
+          [class.bg-[#e9eef8]]="selectedCategory === c.name.toLowerCase()">
+          {{ c.name }}
+        </a>
       </nav>
     </div>
   </aside>

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { map, Observable, of, switchMap, forkJoin } from 'rxjs';
 import { ApiProduct } from './product.api';
 import { UiProduct, toUiProduct } from './product.ui';
+import { CategoryService } from './category.service';
 
 export interface SaveProductPayload {
   code: string;
@@ -18,6 +19,7 @@ export interface SaveProductPayload {
 export class ProductService {
   private http = inject(HttpClient);
   private base = '/api/products';
+  private categoryService = inject(CategoryService);
 
   list(): Observable<ApiProduct[]> {
     return this.http.get<ApiProduct[]>(this.base);
@@ -27,22 +29,50 @@ export class ProductService {
     return this.http.get<ApiProduct>(`${this.base}/${id}`);
   }
 
-  /** Devuelve UiProduct con categorías y stock reales aunque /products no venga populado */
+
+
+
   listUi(): Observable<UiProduct[]> {
+    // normaliza texto para búsquedas o comparaciones
+    const norm = (s: string) =>
+      (s || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+
     return this.list().pipe(
-      switchMap(arr => {
-        if (!arr?.length) return of<UiProduct[]>([]);
-        const toFull$: Observable<ApiProduct>[] = arr.map(p => {
-          const cats = Array.isArray(p.categories) ? p.categories : [];
-          const stock = Array.isArray(p.stock) ? p.stock : [];
-          const catsAreIds = cats.length > 0 && typeof cats[0] === 'string';
-          const stockAreIds = stock.length > 0 && typeof stock[0] === 'string';
-          return (catsAreIds || stockAreIds) ? this.get(p._id) : of(p);
-        });
-        return forkJoin(toFull$).pipe(map(full => full.map(toUiProduct)));
+      switchMap((products: ApiProduct[]) => {
+        if (!products?.length) return of<UiProduct[]>([]);
+
+        // ✅ usamos CategoryService para traer categorías reales
+        return this.categoryService.list().pipe(
+          map((categories) => {
+            const catMap = new Map(categories.map(c => [c._id, c.name]));
+
+            return products.map((p) => {
+              const ui = toUiProduct(p);
+
+              // reemplazamos IDs por nombres reales desde la API
+              const catNames = (Array.isArray(p.categories) ? p.categories : [])
+                .map((id: any) => catMap.get(id) || '')
+                .filter(Boolean);
+
+              // normalizamos solo para mantener consistencia visual
+              const categoryNames = catNames.map(norm);
+
+              return { ...ui, categoryNames } as UiProduct;
+            });
+          })
+        );
       })
     );
   }
+
+
+
+
+
 
   // ========= CRUD =========
   create(payload: SaveProductPayload): Observable<ApiProduct> {
