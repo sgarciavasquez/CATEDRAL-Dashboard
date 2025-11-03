@@ -25,6 +25,7 @@ export const routes: Routes = [
     path: 'producto/:id',
     loadComponent: () => import('./features/catalog/product.info/product.info')
       .then(m => m.ProductInfo),
+    data: { renderMode: 'client' } 
   },
 
   // auth
@@ -51,7 +52,15 @@ export const routes: Routes = [
     title: 'Administrar pedidos',
   },
 
-  { path: 'admin/products', component: ProductsAdminPage, canActivate: [authGuard], title: 'Administrar productos' },
+  {
+    path: 'admin/products',
+    canActivate: [authGuard],
+    data: { roles: ['admin'] },
+    loadComponent: () =>
+      import('./features/home/admin/products/products.admin.pages')
+        .then(m => m.ProductsAdminPage),
+    title: 'Administrar productos',
+  },
 
   { path: '**', redirectTo: '' },
 ];

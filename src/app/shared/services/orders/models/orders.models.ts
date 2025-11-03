@@ -11,16 +11,37 @@ export interface ApiOrderItem {
 
 export interface ApiReservation {
   _id: string;
-  code?: string; 
-  customer: { id?: string; name: string; email?: string; phone?: string };
-  status: OrderStatus;
-  createdAt: string;    
-  reserveDate?: string; 
-  items: ApiOrderItem[];
-  total?: number;       
+  code?: string;
+
+  // Tu backend puede traer customer o user (id o poblado)
+  customer?: { id?: string; name?: string; email?: string; phone?: string };
+  user?: string | { _id?: string; id?: string; name?: string; email?: string; phone?: string };
+
+  // Puede devolver 'PENDING'|'COMPLETED'|'CANCELLED' o minúsculas
+  status: string;
+  createdAt: string;
+  reserveDate?: string;
+
+  // Puede venir una de estas dos:
+  items?: ApiOrderItem[];
+  reservationDetail?: Array<{
+    product: string | {
+      _id?: string;
+      id?: string;
+      code?: string;
+      name?: string;
+      imageUrl?: string;
+      price?: number;
+    };
+    quantity: number;
+    subtotal?: number;
+  }>;
+
+  total?: number;
 }
 
 export interface UiOrderItem {
+  productId?: string;    // para PATCH
   code?: string;
   name: string;
   imageUrl: string;
@@ -32,7 +53,10 @@ export interface UiOrderItem {
 export interface UiReservation {
   id: string;
   code: string;
+  customerId?: string;   // para PATCH (user)
   customerName: string;
+  customerEmail?: string;
+  customerPhone?: string;
   status: OrderStatus;
   createdAt: Date;
   reserveDate?: Date;
@@ -41,21 +65,75 @@ export interface UiReservation {
 }
 
 export function toUiReservation(a: ApiReservation): UiReservation {
-  const items: UiOrderItem[] = (a.items ?? []).map(it => ({
-    code: it.code,
-    name: it.name,
-    imageUrl: it.imageUrl || 'assets/p1.png',
-    quantity: it.quantity,
-    price: it.price,
-    lineTotal: Math.max(0, (it.quantity ?? 0) * (it.price ?? 0)),
-  }));
-  const total = a.total ?? items.reduce((s, x) => s + x.lineTotal, 0);
+  // ---- Cliente (customer o user) ----
+  const userObj =
+    (typeof a.user === 'object' && a.user) ? (a.user as any) : undefined;
+
+  const customerId =
+    a.customer?.id ??
+    userObj?._id ?? userObj?.id ??
+    (typeof a.user === 'string' ? a.user : '') ?? '';
+
+  const customerName =
+    a.customer?.name ??
+    userObj?.name ??
+    (customerId ? `ID ${String(customerId).slice(-6)}` : '');
+
+  const customerEmail =
+    a.customer?.email ?? userObj?.email ?? undefined;
+
+  const customerPhone =
+    a.customer?.phone ?? userObj?.phone ?? undefined;
+
+  // ---- Items (items[] o reservationDetail[]) ----
+  let items: UiOrderItem[] = [];
+
+  if (Array.isArray(a.items)) {
+    items = (a.items ?? []).map(it => ({
+      productId: it.productId,
+      code: it.code,
+      name: it.name,
+      imageUrl: it.imageUrl || 'assets/p1.png',
+      quantity: it.quantity,
+      price: it.price ?? 0,
+      lineTotal: Math.max(0, (it.quantity ?? 0) * (it.price ?? 0)),
+    }));
+  } else if (Array.isArray(a.reservationDetail)) {
+    items = (a.reservationDetail ?? []).map(rd => {
+      const p = rd.product as any;
+      const productId = typeof rd.product === 'string' ? rd.product : (p?._id ?? p?.id ?? '');
+      const quantity = Number(rd.quantity ?? 0);
+      const priceFromProduct = Number(p?.price ?? 0);
+      const priceFromSubtotal = (rd.subtotal != null && quantity > 0) ? Number(rd.subtotal) / quantity : 0;
+      const price = priceFromProduct || priceFromSubtotal || 0;
+
+      return {
+        productId: productId || undefined,
+        code: typeof rd.product === 'object' ? (p?.code ?? undefined) : undefined,
+        name: typeof rd.product === 'object' ? (p?.name ?? '(sin nombre)') : '(producto)',
+        imageUrl: typeof rd.product === 'object' ? (p?.imageUrl || 'assets/p1.png') : 'assets/p1.png',
+        quantity,
+        price,
+        lineTotal: Math.max(0, quantity * price),
+      };
+    });
+  }
+
+  // ---- Total ----
+  const computedTotal = items.reduce((s, x) => s + x.lineTotal, 0);
+  const total = (typeof a.total === 'number' ? a.total : undefined) ?? computedTotal;
+
+  // ---- Status normalizado ----
+  const status = String(a.status || 'pending').toLowerCase() as OrderStatus;
 
   return {
     id: a._id,
-    code: a.code ?? a._id.slice(-5),
-    customerName: a.customer?.name ?? '',
-    status: a.status,
+    code: a.code ?? (a._id ? a._id.slice(-5) : ''),
+    customerId: customerId || undefined,
+    customerName,
+    customerEmail,
+    customerPhone,
+    status,
     createdAt: new Date(a.createdAt),
     reserveDate: a.reserveDate ? new Date(a.reserveDate) : undefined,
     items,
