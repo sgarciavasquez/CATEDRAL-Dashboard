@@ -1,9 +1,55 @@
-<section class="bg-[#d8e7f2] py-8">
+<section class="bg-[#d8e7f2] py-6 select-none" role="region" aria-label="Catedral Perfumes - Carrusel">
   <div class="container-7xl">
     <div
-      class="rounded-2xl bg-white h-44 sm:h-56 md:h-64 w-full shadow-sm flex items-center justify-center"
+      class="relative overflow-hidden rounded-2xl bg-white w-full h-44 sm:h-56 md:h-72 lg:h-80 shadow-sm"
+      (mouseenter)="onMouse(true)"
+      (mouseleave)="onMouse(false)"
     >
-      <span class="text-neutral-400 select-none">Carrusel</span>
+      <!-- Slides -->
+      <ng-container *ngFor="let s of slides; let i = index">
+        <img
+          *ngIf="current === i"
+          [src]="s.src"
+          [alt]="s.alt"
+          class="absolute inset-0 h-full w-full object-cover"
+          width="1792"
+          height="768"
+        />
+      </ng-container>
+
+      <!-- Gradient overlay -->
+      <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/5 via-transparent"></div>
+
+      <!-- Controles -->
+      <button
+        type="button"
+        (click)="prev()"
+        class="absolute left-2 top-1/2 -translate-y-1/2 grid place-items-center h-9 w-9 rounded-full
+               bg-white/80 hover:bg-white shadow"
+        aria-label="Anterior">
+        ‹
+      </button>
+
+      <button
+        type="button"
+        (click)="next()"
+        class="absolute right-2 top-1/2 -translate-y-1/2 grid place-items-center h-9 w-9 rounded-full
+               bg-white/80 hover:bg-white shadow"
+        aria-label="Siguiente">
+        ›
+      </button>
+
+      <!-- Bullets -->
+      <div class="absolute bottom-2 left-0 right-0 flex items-center justify-center gap-2">
+        <button
+          type="button"
+          *ngFor="let s of slides; let i = index"
+          (click)="goTo(i)"
+          [attr.aria-label]="'Ir al slide ' + (i + 1)"
+          [ngClass]="current === i ? 'bg-white' : 'bg-white/50'"
+          class="h-2.5 w-2.5 rounded-full transition">
+        </button>
+      </div>
     </div>
   </div>
 </section>

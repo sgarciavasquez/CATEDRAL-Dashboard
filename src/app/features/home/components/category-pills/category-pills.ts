@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common'; // para *ngFor
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
-type CatKey = 'mujer-dis' | 'hombre-dis' | 'Nicho' ;
+type CatKey = 'mujer-dis' | 'hombre-dis' | 'nicho';
 interface Cat { key: CatKey; label: string; img: string; }
 
 @Component({
@@ -18,7 +18,7 @@ export class CategoryPillsComponent {
   cats: Cat[] = [
     { key: 'mujer-dis',  label: 'Diseñador Mujer',  img: 'assets/p1.png' },
     { key: 'hombre-dis', label: 'Diseñador Hombre', img: 'assets/p2.png' },
-    { key: 'Nicho',      label: 'Nicho',            img: 'assets/p3.png' },
+    { key: 'nicho',      label: 'Nicho',            img: 'assets/p3.png' },
   ];
 
   go(key: CatKey) {

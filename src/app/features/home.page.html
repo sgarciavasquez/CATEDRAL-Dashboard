@@ -1,4 +1,6 @@
 <app-header></app-header>
+<div class="min-h-screen flex flex-col">
+
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 
@@ -32,7 +34,7 @@
       {{ error }}
     </div>
 
-    <div *ngIf="!loading && !error" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div *ngIf="!loading && !error" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
       <app-product-card *ngFor="let p of bestSellers" [product]="p"></app-product-card>
     </div>
 
@@ -45,4 +47,5 @@
   </section>
 </main>
 
-<app-footer></app-footer>
+<app-footer class="mt-auto"></app-footer>
+</div>

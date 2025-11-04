@@ -1,85 +1,110 @@
-<app-header> </app-header>
+<!-- Header -->
+<app-header></app-header>
 
-<main class="min-h-[calc(100vh-64px)] bg-[#f1f3f6] grid place-items-center px-4 py-10">
-  <section class="w-full max-w-[460px] rounded-2xl bg-white shadow-md border border-[#e6eaf1] p-6">
-    <header class="mb-5 text-center">
-      <h1 class="text-xl md:text-2xl font-semibold text-[#2f3f56]">Registrarse</h1>
-    </header>
+<div class="min-h-screen flex flex-col">
+  <main class="min-h-[calc(100vh-64px)] grid place-items-center px-4 py-10 bg-[#f1f3f6]">
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-3.5">
-      <!-- Nombre -->
-      <div class="relative">
-        <span class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-8 h-8 rounded-md bg-[#2f3f56] text-white">
-          <!-- user -->
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M4 20a8 8 0 0116 0" stroke="currentColor" stroke-width="1.5" fill="none"/>
-          </svg>
-        </span>
-        <input formControlName="name" placeholder="Nombre"
-               class="w-full rounded-xl bg-[#eef2f7] pl-12 pr-3 py-2 text-[15px] outline-none
-                      border border-transparent focus:border-[#b7c3d6]" />
-      </div>
+    <!-- CARD COMPACTA -->
+    <section
+      class="w-[380px] max-w-[92vw] rounded-xl bg-white shadow-lg
+             border border-[#e6eaf1] p-5 md:p-6">
 
-      <!-- Correo -->
-      <div class="relative">
-        <span class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-8 h-8 rounded-md bg-[#2f3f56] text-white">
-          <!-- mail -->
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.5" />
-            <path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="1.5" fill="none"/>
-          </svg>
-        </span>
-        <input formControlName="email" type="email" placeholder="Correo"
-               class="w-full rounded-xl bg-[#eef2f7] pl-12 pr-3 py-2 text-[15px] outline-none
-                      border border-transparent focus:border-[#b7c3d6]" />
-      </div>
+      <!-- Encabezado -->
+      <header class="mb-4 text-center">
+        <div class="mx-auto mb-2 inline-flex items-center gap-2 rounded-full bg-[#2f3f56] px-3 py-1 text-white">
+          <span class="inline-block h-2 w-2 rounded-full bg-white/80"></span>
+        </div>
+        <h1 class="text-xl font-semibold text-[#2f3f56]">Registrarse</h1>
+      </header>
 
-      <!-- Teléfono -->
-      <div class="relative">
-        <span class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-8 h-8 rounded-md bg-[#2f3f56] text-white">
-          <!-- phone -->
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M6 2h4l1 4-2 1a11 11 0 005 5l1-2 4 1v4a2 2 0 01-2 2c-8.284 0-15-6.716-15-15A2 2 0 016 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>
-          </svg>
-        </span>
-        <input type="tel" formControlName="phone" placeholder="(+569)12345678"
-               (input)="onPhoneInput($event)"
-               class="w-full rounded-xl bg-[#eef2f7] pl-12 pr-3 py-2 text-[15px] outline-none
-                      border border-transparent focus:border-[#b7c3d6]" />
-        <small class="block mt-1 text-xs text-neutral-500">Se autocompleta el prefijo (+569)</small>
-      </div>
+      <!-- Form -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
 
-      <!-- Contraseña -->
-      <div class="relative">
-        <span class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-8 h-8 rounded-md bg-[#2f3f56] text-white">
-          <!-- candado -->
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M8 10V7a4 4 0 118 0v3" stroke="currentColor" stroke-width="1.5"/>
-          </svg>
-        </span>
-        <input formControlName="password" type="password" placeholder="Contraseña"
-               class="w-full rounded-xl bg-[#eef2f7] pl-12 pr-3 py-2 text-[15px] outline-none
-                      border border-transparent focus:border-[#b7c3d6]" />
-      </div>
+        <!-- Nombre -->
+        <label class="relative block">
+          <input
+            formControlName="name"
+            placeholder=" "
+            class="peer w-full rounded-xl bg-[#eef2f7] px-4 pt-4 pb-2 text-[15px] outline-none
+                   border border-transparent focus:border-[#a9b6cb] focus:bg-white transition" />
+          <span
+            class="pointer-events-none absolute left-4 top-2.5 text-[12px] text-[#6b7a90] transition-all
+                   peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-[14px]
+                   peer-focus:top-2.5 peer-focus:text-[12px]">
+            Nombre
+          </span>
+        </label>
 
-      <!-- Botón -->
-      <button type="submit"
-              class="w-full rounded-full bg-[#2f3f56] text-white py-2 font-medium hover:brightness-110
-                     disabled:opacity-50 disabled:cursor-not-allowed"
-              [disabled]="loading || form.invalid">
-        {{ loading ? 'Creando cuenta…' : 'Aceptar' }}
-      </button>
+        <!-- Correo -->
+        <label class="relative block">
+          <input
+            type="email"
+            formControlName="email"
+            placeholder=" "
+            class="peer w-full rounded-xl bg-[#eef2f7] px-4 pt-4 pb-2 text-[15px] outline-none
+                   border border-transparent focus:border-[#a9b6cb] focus:bg-white transition" />
+          <span
+            class="pointer-events-none absolute left-4 top-2.5 text-[12px] text-[#6b7a90] transition-all
+                   peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-[14px]
+                   peer-focus:top-2.5 peer-focus:text-[12px]">
+            Correo
+          </span>
+        </label>
 
-      <p class="text-center text-sm text-neutral-600">
-        ¿Ya tienes cuenta?
-        <a routerLink="/auth/login" class="font-medium text-[#2f3f56] hover:underline">Ingresar</a>
-      </p>
+        <!-- Teléfono -->
+        <label class="relative block">
+          <input
+            type="tel"
+            formControlName="phone"
+            (input)="onPhoneInput($event)"
+            placeholder=" "
+            class="peer w-full rounded-xl bg-[#eef2f7] px-4 pt-4 pb-2 text-[15px] outline-none
+                   border border-transparent focus:border-[#a9b6cb] focus:bg-white transition" />
+          <span
+            class="pointer-events-none absolute left-4 top-2.5 text-[12px] text-[#6b7a90] transition-all
+                   peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-[14px]
+                   peer-focus:top-2.5 peer-focus:text-[12px]">
+            Teléfono 
+          </span>
+        </label>
+        <small class="block -mt-3 text-xs text-neutral-500">Ej: (+569)12345678</small>
 
-      <p *ngIf="error" class="text-red-600 text-sm text-center">{{ error }}</p>
-    </form>
-  </section>
-</main>
+        <!-- Contraseña -->
+        <label class="relative block">
+          <input
+            type="password"
+            formControlName="password"
+            placeholder=" "
+            class="peer w-full rounded-xl bg-[#eef2f7] px-4 pt-4 pb-2 text-[15px] outline-none
+                   border border-transparent focus:border-[#a9b6cb] focus:bg-white transition" />
+          <span
+            class="pointer-events-none absolute left-4 top-2.5 text-[12px] text-[#6b7a90] transition-all
+                   peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-[14px]
+                   peer-focus:top-2.5 peer-focus:text-[12px]">
+            Contraseña
+          </span>
+        </label>
 
-<app-footer> </app-footer>
+        <!-- Botón -->
+        <button
+          type="submit"
+          [disabled]="loading || form.invalid"
+          class="w-full rounded-lg bg-[#2f3f56] text-white py-2 font-medium shadow
+                 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition">
+          {{ loading ? 'Creando cuenta…' : 'Aceptar' }}
+        </button>
+
+        <!-- Ir a login -->
+        <p class="text-center text-sm text-neutral-600">
+          ¿Ya tienes cuenta?
+          <a routerLink="/auth/login" class="font-medium text-[#2f3f56] hover:underline">Ingresar</a>
+        </p>
+
+        <!-- Error global -->
+        <p *ngIf="error" class="text-red-600 text-sm text-center">{{ error }}</p>
+      </form>
+    </section>
+  </main>
+
+  <app-footer class="mt-auto"></app-footer>
+</div>

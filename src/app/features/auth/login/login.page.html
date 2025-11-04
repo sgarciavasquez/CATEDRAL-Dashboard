@@ -1,75 +1,84 @@
-<!-- headercomponent  -->
-<app-header> </app-header>
+<!-- Header -->
+<app-header></app-header>
 
-<main class="min-h-[calc(100vh-64px)] bg-[#f1f3f6] grid place-items-center px-4 py-10">
-  <section class="w-full max-w-[460px] rounded-2xl bg-white shadow-md border border-[#e6eaf1] p-6">
-    <header class="mb-5 text-center">
-      <h1 class="text-xl md:text-2xl font-semibold text-[#2f3f56]">Iniciar sesión</h1>
-    </header>
+<div class="min-h-screen flex flex-col">
+  <main class="min-h-[calc(100vh-64px)] grid place-items-center px-4 py-10 bg-[#f1f3f6]">
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-3.5">
-      <!-- Correo -->
-      <div>
-        <div class="relative flex items-center">
-          <span class="absolute left-3 grid place-items-center w-8 h-8 rounded-md bg-[#2f3f56] text-white">
-            <!-- mail -->
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.5" />
-              <path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="1.5" fill="none" />
-            </svg>
-          </span>
-          <input class="w-full rounded-xl bg-[#eef2f7] pl-12 pr-3 py-2 text-[15px] outline-none
-                   border border-transparent focus:border-[#b7c3d6]" formControlName="email" type="email"
-            placeholder="Correo" />
+    <!-- CARD COMPACTA -->
+    <section
+      class="w-[360px] sm:w-[380px] max-w-[92vw] rounded-xl bg-white shadow-lg
+             border border-[#e6eaf1] p-5 md:p-6">
+
+      <!-- Encabezado -->
+      <header class="mb-4 text-center">
+        <div class="mx-auto mb-2 inline-flex items-center gap-2 rounded-full bg-[#2f3f56] px-3 py-1 text-white">
+          <span class="inline-block h-2 w-2 rounded-full bg-white/80"></span>
+          <span class="text-xs tracking-wide opacity-90">Catedral Perfumes</span>
         </div>
+        <h1 class="text-xl font-semibold text-[#2f3f56]">Iniciar sesión</h1>
+      </header>
+
+      <!-- Form -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+
+        <!-- Email (label flotante) -->
+        <label class="relative block">
+          <input
+            type="email"
+            formControlName="email"
+            placeholder=" "
+            class="peer w-full rounded-xl bg-[#eef2f7] px-4 pt-4 pb-2 text-[15px] outline-none
+                   border border-transparent focus:border-[#a9b6cb] focus:bg-white transition" />
+          <span
+            class="pointer-events-none absolute left-4 top-2.5 text-[12px] text-[#6b7a90] transition-all
+                   peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-[14px]
+                   peer-focus:top-2.5 peer-focus:text-[12px]">
+            Correo
+          </span>
+        </label>
         <p class="mt-1 text-xs text-red-600" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
           Ingresa un correo válido.
         </p>
-      </div>
 
-      <!-- Contraseña -->
-      <div>
-        <div class="relative flex items-center">
-          <span class="absolute left-3 grid place-items-center w-8 h-8 rounded-md bg-[#2f3f56] text-white">
-            <!-- candado -->
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5" />
-              <path d="M8 10V7a4 4 0 118 0v3" stroke="currentColor" stroke-width="1.5" />
-            </svg>
+        <!-- Password -->
+        <label class="relative block">
+          <input
+            type="password"
+            formControlName="password"
+            placeholder=" "
+            class="peer w-full rounded-xl bg-[#eef2f7] px-4 pt-4 pb-2 text-[15px] outline-none
+                   border border-transparent focus:border-[#a9b6cb] focus:bg-white transition" />
+          <span
+            class="pointer-events-none absolute left-4 top-2.5 text-[12px] text-[#6b7a90] transition-all
+                   peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-[14px]
+                   peer-focus:top-2.5 peer-focus:text-[12px]">
+            Contraseña
           </span>
-          <input class="w-full rounded-xl bg-[#eef2f7] pl-12 pr-3 py-2 text-[15px] outline-none
-                   border border-transparent focus:border-[#b7c3d6]" formControlName="password" type="password"
-            placeholder="Contraseña" />
-        </div>
+        </label>
         <p class="mt-1 text-xs text-red-600" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
           Mínimo 6 caracteres.
         </p>
-      </div>
 
-      <!-- Olvidé mi contraseña (centrado) -->
-      <!-- Olvidé mi contraseña (centrado) -->
-      <div class="pt-1 text-center">
-        <a routerLink="/auth/forgot-password" class="text-xs text-[#2f3f56]/80 hover:underline cursor-pointer">
-          Olvidé mi contraseña
-        </a>
-      </div>
+        <!-- Links -->
+        <div class="flex items-center justify-between text-sm">
+          <a routerLink="/auth/forgot-password" class="text-[#2f3f56]/80 hover:underline">Olvidé mi contraseña</a>
+          <a routerLink="/auth/register" class="text-[#2f3f56] hover:underline">Crear cuenta</a>
+        </div>
 
+        <!-- Submit -->
+        <button
+          type="submit"
+          [disabled]="form.invalid || loading"
+          class="w-full rounded-lg bg-[#2f3f56] text-white py-2 font-medium shadow
+                 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition">
+          {{ loading ? 'Entrando…' : 'Aceptar' }}
+        </button>
 
-      <!-- Botón -->
-      <button class="w-full rounded-full bg-[#2f3f56] text-white py-2 font-medium
-               hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed" type="submit"
-        [disabled]="form.invalid || loading">
-        {{ loading ? 'Entrando…' : 'Aceptar' }}
-      </button>
+        <!-- Error global -->
+        <p class="text-sm text-red-600 text-center" *ngIf="error">{{ error }}</p>
+      </form>
+    </section>
+  </main>
 
-      <p class="text-center text-sm text-neutral-600">
-        ¿No tienes cuenta?
-        <a routerLink="/auth/register" class="font-medium text-[#2f3f56] hover:underline">Regístrate</a>
-      </p>
-
-      <p class="text-sm text-red-600 text-center" *ngIf="error">{{ error }}</p>
-    </form>
-  </section>
-</main>
-
-<app-footer> </app-footer>
+  <app-footer class="mt-auto"></app-footer>
+</div>
