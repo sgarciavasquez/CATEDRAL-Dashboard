@@ -13,7 +13,7 @@
           Todas
         </a>
 
-        <!-- ✅ Lista dinámica de categorías desde la API -->
+        <!-- Lista dinámica de categorías desde la API -->
         <a *ngFor="let c of categories" [routerLink]="['/catalogo']" [queryParams]="{ cat: c.name }"
           class="px-4 py-2 rounded hover:bg-stone-100 capitalize"
           [class.bg-[#e9eef8]]="selectedCategory === c.name.toLowerCase()">
