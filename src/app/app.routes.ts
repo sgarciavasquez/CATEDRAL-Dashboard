@@ -9,12 +9,19 @@ import { ResetPasswordPage } from './features/auth/forgot-password/reset-passwor
 import { ProfilePage } from './features/profile.users/profile.page';
 import { authGuard } from './shared/services/authservice/auth.guard';
 import { ProductsAdminPage } from './features/home/admin/products/products.admin.pages';
+import { ChatInboxComponent } from './chat/chat-inbox.component';
+import { ChatThreadComponent } from './chat/chat-thread.component';
 
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, title: 'Catedral Perfumes' },
 
   { path: 'cart', component: CartPage, title: 'Carro' },
+  { path: 'chat', component: ChatInboxComponent, title: 'Mensajes' },
+  { path: 'chat/:id', component: ChatThreadComponent, title: 'Conversación' },
+  
+  { path: 'admin/chat', component: ChatInboxComponent, data: { admin: true }, title: 'Mensajes (Admin)' },
+  { path: 'admin/chat/:id', component: ChatThreadComponent, data: { admin: true }, title: 'Conversación (Admin)' },
 
   {
     path: 'catalogo',

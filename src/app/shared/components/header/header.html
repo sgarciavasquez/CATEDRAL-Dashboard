@@ -6,12 +6,14 @@
       <img src="assets/logo_bl.png" alt="Catedral Perfumes" class="h-9 w-auto" />
     </a>
 
-    <!-- Marca CENTRADA (ya no es absolute) -->
+    <!-- Marca CENTRADA -->
     <a routerLink="/" class="justify-self-center text-center leading-tight select-none">
-      <div class="uppercase font-bold text-[22px] sm:text-[24px] md:text-[28px] tracking-[0.28em] md:tracking-[0.32em]">
+      <div
+        class="uppercase font-bold text-[22px] sm:text-[24px] md:text-[28px] tracking-[0.28em] md:tracking-[0.32em]">
         CATEDRAL
       </div>
-      <div class="uppercase text-[9px] sm:text-[10px] md:text-[11px] tracking-[0.36em] md:tracking-[0.42em] opacity-90">
+      <div
+        class="uppercase text-[9px] sm:text-[10px] md:text-[11px] tracking-[0.36em] md:tracking-[0.42em] opacity-90">
         PERFUMES
       </div>
     </a>
@@ -23,25 +25,26 @@
         <input
           class="w-full rounded-full bg-white text-stone-900 pl-4 pr-9 py-2 placeholder:text-stone-400 outline-none"
           placeholder="Buscar perfumes..." type="search" />
-        <mat-icon class="!absolute right-2 top-1/2 -translate-y-1/2 !text-stone-500 !text-[20px]">search</mat-icon>
+        <mat-icon
+          class="!absolute right-2 top-1/2 -translate-y-1/2 !text-stone-500 !text-[20px]">search</mat-icon>
       </div>
 
       <!-- Iconos -->
       <ng-container *ngIf="(user$ | async) as _; else guest">
         <a [routerLink]="['/perfil']" title="Perfil" aria-label="Perfil"
-           class="grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition">
+          class="grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition">
           <mat-icon>person</mat-icon>
         </a>
 
         <a *ngIf="isAdmin$ | async" routerLink="/admin/pedidos" title="Administrar pedidos"
-           aria-label="Administrar pedidos"
-           class="grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition">
+          aria-label="Administrar pedidos"
+          class="grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition">
           <mat-icon>inventory_2</mat-icon>
         </a>
 
         <button title="Salir" aria-label="Salir"
-                class="grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition"
-                (click)="logout()">
+          class="grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition"
+          (click)="logout()">
           <mat-icon>logout</mat-icon>
         </button>
       </ng-container>
@@ -51,13 +54,39 @@
         <a routerLink="/auth/register" title="Registrarse" aria-label="Registrarse" class="underline">Registrarse</a>
       </ng-template>
 
-      
+      <!-- Mensajes -->
+      <ng-container *ngIf="isAdmin$ | async; else userChatLink">
+        <!-- Admin -->
+        <a routerLink="/admin/chat" title="Mensajes" aria-label="Mensajes"
+          class="relative grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition">
+          <mat-icon>chat_bubble</mat-icon>
 
+          <span *ngIf="unreadMessages() > 0"
+            class="absolute -top-1.5 -right-1.5 text-[10px] rounded-full bg-rose-500 text-white px-1.5 py-[1px] leading-none">
+            {{ unreadMessages() }}
+          </span>
+        </a>
+      </ng-container>
+
+      <ng-template #userChatLink>
+        <!-- Cliente -->
+        <a routerLink="/chat" title="Mensajes" aria-label="Mensajes"
+          class="relative grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition">
+          <mat-icon>chat_bubble</mat-icon>
+
+          <span *ngIf="unreadMessages() > 0"
+            class="absolute -top-1.5 -right-1.5 text-[10px] rounded-full bg-rose-500 text-white px-1.5 py-[1px] leading-none">
+            {{ unreadMessages() }}
+          </span>
+        </a>
+      </ng-template>
+
+      <!-- Carro -->
       <a routerLink="/cart" title="Carro" aria-label="Carro"
-         class="relative grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition">
+        class="relative grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition">
         <mat-icon>shopping_cart</mat-icon>
         <span *ngIf="(count$ | async) as count"
-              class="absolute -top-1.5 -right-1.5 text-[10px] rounded-full bg-amber-400 text-black px-1.5 py-[1px] leading-none">
+          class="absolute -top-1.5 -right-1.5 text-[10px] rounded-full bg-amber-400 text-black px-1.5 py-[1px] leading-none">
           {{ count }}
         </span>
       </a>
