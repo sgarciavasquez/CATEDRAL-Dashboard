@@ -3,70 +3,82 @@
 <div class="min-h-screen flex flex-col">
 
   <section class="max-w-5xl mx-auto p-4">
-    <!-- Header -->
-    <header class="flex items-center justify-between rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5">
-      <div class="flex items-center gap-3">
-        <div class="h-9 w-9 rounded-full bg-slate-200 grid place-items-center">🏬</div>
-        <div>
-          <h2 class="text-sm font-semibold text-slate-900">{{ otherName() }}</h2>
-          <p class="text-[12px] text-slate-500">Chat de la compra</p>
+    <!-- Encabezado + resumen de reserva (como Mercado Libre) -->
+    <header class="rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-full bg-slate-200 grid place-items-center">🏬</div>
+          <div>
+            <h2 class="text-sm font-semibold text-slate-900">{{ otherName() }}</h2>
+            <p class="text-[12px] text-slate-500">Chat de la compra</p>
+          </div>
+        </div>
+        <a [routerLink]="[base]" class="text-sm text-slate-600 hover:underline">Volver</a>
+      </div>
+
+      <!-- Resumen de la reserva (si existe) -->
+      <div *ngIf="reservationPreview as rp" class="mt-3 rounded-lg border bg-slate-50 p-3">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="text-sm font-medium text-slate-900">Reserva #{{ rp.reservationId }}</div>
+            <div class="text-[12px] text-slate-500">Fecha: {{ rp.createdAt | date:'short' }}</div>
+          </div>
+          <div class="text-sm font-semibold">Total: ${{ rp.total | number:'1.0-0' }}</div>
+        </div>
+
+        <div *ngIf="rp.items?.length" class="mt-2 max-h-24 overflow-y-auto space-y-1 pr-1">
+          <div *ngFor="let it of rp.items" class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <img *ngIf="it.imageUrl" [src]="it.imageUrl" class="w-8 h-8 object-cover rounded" alt="">
+              <div class="truncate text-sm text-slate-700">
+                {{ it.name }} <span class="text-xs text-slate-500">· {{ it.qty }} un.</span>
+              </div>
+            </div>
+            <div class="text-sm text-slate-900 font-medium">${{ it.price | number:'1.0-0' }}</div>
+          </div>
+        </div>
+
+        <div class="mt-2 text-[12px] text-slate-600">
+          Coordina aquí el punto de encuentro con el vendedor. Evita compartir datos sensibles.
         </div>
       </div>
-      <a [routerLink]="[base]" class="text-sm text-slate-600 hover:underline">Volver</a>
     </header>
 
     <!-- Mensajes -->
     <div class="mt-3 h-[60vh] overflow-y-auto rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5">
       <div *ngFor="let m of msgs()" class="mb-2 flex" [class.justify-end]="m.fromId === me().id">
-        <div class="max-w-[75%] rounded-2xl px-3 py-2 text-sm" [class.bg-slate-900]="m.fromId === me().id"
-          [class.text-white]="m.fromId === me().id" [class.bg-slate-100]="m.fromId !== me().id"
+        <div
+          class="max-w-[75%] rounded-2xl px-3 py-2 text-sm"
+          [class.bg-slate-900]="m.fromId === me().id"
+          [class.text-white]="m.fromId === me().id"
+          [class.bg-slate-100]="m.fromId !== me().id"
           [class.text-slate-900]="m.fromId !== me().id">
-          <div>{{ m.text }}</div>
+          <div class="whitespace-pre-wrap break-words">{{ m.text }}</div>
           <div class="mt-1 text-[11px] opacity-70">{{ m.at | date:'shortTime' }}</div>
         </div>
       </div>
+      <!-- ancla para autoscroll -->
+      <div #endRef></div>
     </div>
 
     <!-- Composer -->
     <footer class="mt-3 flex items-center gap-2 rounded-xl bg-white p-2 shadow-sm ring-1 ring-black/5">
-      <textarea [(ngModel)]="draft" rows="1" placeholder="Escribe un mensaje"
+      <!-- OJO: draft es signal => usa [ngModel] + (ngModelChange) -->
+      <textarea
+        [ngModel]="draft()"
+        (ngModelChange)="draft.set($event)"
+        rows="1"
+        placeholder="Escribe un mensaje"
         class="flex-1 resize-none rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-300"></textarea>
-      <button (click)="send()" [disabled]="!draft().trim()"
+
+      <button
+        (click)="send()"
+        [disabled]="!draft().trim()"
         class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-40">
         Enviar
       </button>
     </footer>
-
   </section>
-
-  <!-- RESUMEN DE RESERVA (si existe contexto) -->
-  <div *ngIf="reservationPreview as rp" class="mt-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5">
-    <div class="flex items-start justify-between gap-3">
-      <div>
-        <div class="text-sm font-medium text-slate-900">
-          Reserva #{{ rp.reservationId }}
-        </div>
-        <div class="text-[12px] text-slate-500">
-          Fecha: {{ rp.createdAt | date:'short' }}
-        </div>
-      </div>
-      <div class="text-sm font-semibold">
-        Total: ${{ rp.total | number }}
-      </div>
-    </div>
-
-    <div *ngIf="rp.items?.length" class="mt-2 border-t pt-2 space-y-1">
-      <div *ngFor="let it of rp.items" class="flex items-center justify-between gap-2">
-        <div class="flex items-center gap-2 min-w-0">
-          <img *ngIf="it.imageUrl" [src]="it.imageUrl" class="w-8 h-8 object-cover rounded" alt="" />
-          <div class="truncate text-sm text-slate-700">
-            {{ it.name }} <span class="text-xs text-slate-500">· {{ it.qty }} un.</span>
-          </div>
-        </div>
-        <div class="text-sm text-slate-900 font-medium">${{ it.price | number }}</div>
-      </div>
-    </div>
-  </div>
 
   <app-footer class="mt-auto"></app-footer>
 </div>

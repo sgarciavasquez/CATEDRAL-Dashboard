@@ -1,5 +1,5 @@
 // chat-thread.component.ts
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +8,6 @@ import { HeaderComponent } from "../shared/components/header/header";
 import { ChatStoreService } from './chat.store.service';
 import { ChatContextService, ReservationPreview } from './chat-context.service';
 import { NgIf, NgFor } from '@angular/common';
-
 
 @Component({
   standalone: true,
@@ -19,11 +18,11 @@ import { NgIf, NgFor } from '@angular/common';
 export class ChatThreadComponent {
   store = inject(ChatStoreService);
   route = inject(ActivatedRoute);
-
   private chatCtx = inject(ChatContextService);
+
+  @ViewChild('endRef') endRef?: ElementRef<HTMLDivElement>;
+
   reservationPreview?: ReservationPreview;
-
-
 
   me = this.store.currentUser;
   chatId = this.route.snapshot.paramMap.get('id')!;
@@ -44,16 +43,27 @@ export class ChatThreadComponent {
 
     // 1) primero intenta desde el servicio
     this.reservationPreview = this.chatCtx.get(this.chatId);
+
     // 2) fallback: history.state (si entraron directo desde un link)
     if (!this.reservationPreview) {
       const st = (history?.state ?? {}) as any;
       if (st?.reservationPreview) {
-        this.reservationPreview = st.reservationPreview;
+        this.reservationPreview = st.reservationPreview as ReservationPreview;
+
+        // ✅ FIX DE TIPOS: aseguramos que no sea undefined antes de set()
         if (this.reservationPreview) {
-          this.chatCtx.set(this.chatId, this.reservationPreview); // cachear para refrescos
+          this.chatCtx.set(this.chatId, this.reservationPreview); // <- ya no marca error
+          // Alternativa equivalente:
+          // this.chatCtx.set(this.chatId, this.reservationPreview!);
         }
       }
     }
+
+    // autoscroll cuando cambian mensajes
+    effect(() => {
+      const _ = this.msgs();
+      queueMicrotask(() => this.scrollToEnd());
+    });
   }
 
   send() {
@@ -61,5 +71,12 @@ export class ChatThreadComponent {
     if (!text) return;
     this.store.send(this.chatId, text);
     this.draft.set('');
+    queueMicrotask(() => this.scrollToEnd());
+  }
+
+  private scrollToEnd() {
+    try {
+      this.endRef?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    } catch {}
   }
 }

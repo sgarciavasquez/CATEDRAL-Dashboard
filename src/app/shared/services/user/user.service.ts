@@ -1,10 +1,12 @@
+// user.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 export interface ApiUser {
   _id?: string;
   id?: string;
+  userId?: string;                 // <- opcional, por si lo necesitas en otros lados
   name: string;
   email: string;
   phone?: string;
@@ -18,7 +20,17 @@ export class UserService {
 
   // user actual (usa auth/me en backend)
   me(): Observable<ApiUser> {
-    return this.http.get<ApiUser>(`${this.base}/auth/me`);
+    return this.http.get<any>(`${this.base}/auth/me`).pipe(
+      map((raw) => ({
+        _id: raw?._id ?? raw?.id ?? raw?.userId ?? undefined,   
+        id:  raw?.id  ?? raw?._id ?? raw?.userId ?? undefined,
+        userId: raw?.userId,
+        name: raw?.name ?? '',
+        email: raw?.email ?? '',
+        phone: raw?.phone ?? '',
+        role: raw?.role ?? 'customer',
+      }))
+    );
   }
 
   update(id: string, payload: Partial<ApiUser>) {

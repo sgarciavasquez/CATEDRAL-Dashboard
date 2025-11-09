@@ -31,21 +31,23 @@
         </div>
 
         <form class="mt-4 grid gap-3 sm:grid-cols-2" (ngSubmit)="save()" [formGroup]="form">
+          <!-- Nombre (editable) -->
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-xs text-neutral-600">Nombre</label>
             <input type="text" autocomplete="name" class="w-full rounded border px-3 py-2" formControlName="name" />
+          </div>
+
+          <!-- Celular (editable) -->
+          <div class="col-span-2 sm:col-span-1">
+            <label class="block text-xs text-neutral-600">Celular</label>
+            <input type="tel" autocomplete="tel" inputmode="tel" class="w-full rounded border px-3 py-2"
+              formControlName="phone" />
           </div>
 
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-xs text-neutral-600">Correo</label>
             <input type="email" autocomplete="email" class="w-full rounded border px-3 py-2 bg-stone-50"
               formControlName="email" readonly />
-          </div>
-
-          <div class="col-span-2 sm:col-span-1">
-            <label class="block text-xs text-neutral-600">Celular</label>
-            <input type="tel" autocomplete="tel" inputmode="tel" class="w-full rounded border px-3 py-2"
-              formControlName="phone" />
           </div>
 
           <div class="col-span-2 flex gap-3 items-center mt-2">
@@ -64,7 +66,7 @@
           <div class="text-sm text-neutral-500" *ngIf="loading">Cargando…</div>
         </div>
 
-        <div *ngIf="!loading && (reservations?.length ?? 0) === 0" class="text-sm text-neutral-600">
+        <div *ngIf="!loading && (reservations.length === 0)" class="text-sm text-neutral-600">
           No tienes reservas.
         </div>
 

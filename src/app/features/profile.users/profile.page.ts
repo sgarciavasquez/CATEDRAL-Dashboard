@@ -45,16 +45,19 @@ export class ProfilePage {
   });
 
   constructor() {
+    console.log('%c[Profile] constructor', 'color:#7c3aed');
     this.load();
   }
 
   private load() {
+    console.log('%c[Profile] load() -> start', 'color:#2563eb');
     this.loading = true;
     this.error = '';
     this.okMsg = '';
 
     this.userService.me().pipe(
       tap((u: ApiUser) => {
+        console.log('%c[Profile] me() OK:', 'color:#16a34a', u);
         this.user = u;
 
         const emailCtrl = this.form.get('email')!;
@@ -70,28 +73,49 @@ export class ProfilePage {
         this.cd.markForCheck();
       }),
       switchMap((u: ApiUser) => {
-        const id = u._id ?? u.id;
-        if (!id) return of<Reservation[]>([]);
-        // 👉 si quieres filtrar por estado: listByUser(id, 'CONFIRMED')
+        const id = u?._id ?? (u as any)?.id;
+        console.log('%c[Profile] switchMap -> userId:', 'color:#2563eb', id);
+        if (!id) {
+          console.warn('[Profile] NO userId, corto la carga de reservas');
+          return of<Reservation[]>([]);
+        }
+        console.log('%c[Profile] llamando listByUser...', 'color:#2563eb');
         return this.reservationService.listByUser(id).pipe(
-          catchError(() => of<Reservation[]>([]))
+          catchError((e) => {
+            console.error('[Profile] listByUser ERROR:', e);
+            return of<Reservation[]>([]);
+          })
         );
       }),
       catchError(err => {
-        this.error = err?.error?.message ?? 'No se pudo cargar perfil';
+        console.error('[Profile] me() ERROR:', err);
+        this.error = err?.status === 401
+          ? 'Inicia sesión para ver tu perfil.'
+          : (err?.error?.message ?? 'No se pudo cargar perfil');
         this.loading = false;
         return of<Reservation[]>([]);
       })
-    ).subscribe(res => {
-      this.reservations = res ?? [];
-      this.loading = false;
-      this.cd.markForCheck();
+    ).subscribe({
+      next: (res) => {
+        console.log('%c[Profile] reservas recibidas:', 'color:#16a34a', res);
+        this.reservations = res ?? [];
+      },
+      error: (e) => {
+        console.error('[Profile] subscribe ERROR:', e);
+        this.loading = false;
+      },
+      complete: () => {
+        console.log('%c[Profile] load() -> complete', 'color:#2563eb');
+        this.loading = false;
+        this.cd.markForCheck();
+      }
     });
   }
 
-  // ========= CHAT (igual) =========
+  // ========= CHAT =========
   private async inferAdminId(clienteId: string): Promise<string | null> {
     try {
+      // Busca si ya existe un chat del cliente para inferir el admin
       const res = await firstValueFrom(this.chatApi.listMine('cliente'));
       const chats = res?.data ?? [];
       for (const c of chats) {
@@ -105,21 +129,23 @@ export class ProfilePage {
 
   async openChat(r: Reservation) {
     this.error = '';
+
     const clienteId = this.user?._id ?? (this.user as any)?.id;
     if (!clienteId) return;
 
+    // 1) Intentar detectar admin con el que ya hubo conversación
     const adminId = await this.inferAdminId(clienteId);
+
     if (!adminId) {
-      this.error = 'No pude detectar con qué administrador chatear. Pídele al admin que te envíe un primer mensaje o agreguen un endpoint de configuración para exponer un admin.';
+      // Si quieres un admin por defecto, dímelo y te indico dónde leerlo (env/client).
+      this.error = 'No pude detectar con qué administrador chatear. Pídele al admin que te envíe un primer mensaje o definan un admin por defecto.';
       return;
     }
 
-    const res = await firstValueFrom(this.chatApi.createOrGet({ clienteId, adminId }));
-    const chat = res?.data;
-    if (!chat?._id) return;
-
+    // 2) Preview opcional para la vista de chat
+    const reservationId = (r as any)._id ?? (r as any).id;
     const preview = {
-      reservationId: (r as any)._id ?? (r as any).id,
+      reservationId,
       createdAt: (r as any).createdAt,
       total: (r as any).total,
       items: (r as any).items?.map((it: any) => ({
@@ -130,14 +156,24 @@ export class ProfilePage {
       })) ?? undefined,
     };
 
-    this.chatCtx.set(chat._id, preview);
-    this.router.navigate(['/chat', chat._id], { state: { reservationPreview: preview } });
+    try {
+      // 3) Crear/obtener chat por par (clienteId, adminId) — contrato actual de tu backend
+      const resp = await firstValueFrom(this.chatApi.createOrGet({ clienteId, adminId }));
+      const chat = resp?.data;
+      if (!chat?._id) return;
+
+      // 4) Guardar preview y navegar al chat
+      this.chatCtx.set(chat._id, preview);
+      this.router.navigate(['/chat', chat._id], { state: { reservationPreview: preview } });
+    } catch (e) {
+      console.error('[Profile] openChat ERROR', e);
+      this.error = 'No se pudo abrir el chat. Intenta de nuevo.';
+    }
   }
 
-  // ========= PERFIL =========
+
   trackReservation = (_: number, r: Reservation) => (r as any)._id || (r as any).id;
 
-  // ⚠️ helper para la portada de cada reserva
   getCover(r: Reservation): string {
     return r?.items?.[0]?.imageUrl || 'assets/p1.png';
   }
@@ -152,20 +188,24 @@ export class ProfilePage {
       phone: this.form.get('phone')!.value ?? '',
     };
 
-    const id = this.user._id ?? this.user.id!;
+    const id = this.user._id ?? (this.user as any).id!;
+    console.log('%c[Profile] update user:', 'color:#2563eb', id, payload);
+
     this.userService.update(id, payload).subscribe({
-      next: (u) => { this.user = u; this.okMsg = 'Datos actualizados'; this.saving = false; },
-      error: (e) => { this.error = e?.error?.message ?? 'Error al actualizar'; this.saving = false; }
+      next: (u) => { console.log('[Profile] update OK', u); this.user = u; this.okMsg = 'Datos actualizados'; this.saving = false; },
+      error: (e) => { console.error('[Profile] update ERROR', e); this.error = e?.error?.message ?? 'Error al actualizar'; this.saving = false; }
     });
   }
 
   deleteAccount() {
     if (!this.user) return;
     if (!confirm('¿Seguro quieres eliminar tu cuenta? Esta acción no se puede deshacer.')) return;
-    const id = this.user._id ?? this.user.id!;
+    const id = this.user._id ?? (this.user as any).id!;
+    console.log('%c[Profile] delete user:', 'color:#dc2626', id);
+
     this.userService.delete(id).subscribe({
-      next: () => { this.auth.logout(); this.router.navigateByUrl('/'); },
-      error: (e) => { this.error = e?.error?.message ?? 'Error al eliminar cuenta'; }
+      next: () => { console.log('[Profile] delete OK'); this.auth.logout(); this.router.navigateByUrl('/'); },
+      error: (e) => { console.error('[Profile] delete ERROR', e); this.error = e?.error?.message ?? 'Error al eliminar cuenta'; }
     });
   }
 
