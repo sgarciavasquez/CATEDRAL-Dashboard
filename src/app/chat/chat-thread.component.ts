@@ -1,4 +1,3 @@
-// chat-thread.component.ts
 import { Component, inject, signal, computed, effect, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -38,28 +37,25 @@ export class ChatThreadComponent {
   });
 
   constructor() {
+    // limpia badge local y carga mensajes del hilo
     this.store.markChatReadLocal(this.chatId);
     this.store.openThread(this.chatId);
 
-    // 1) primero intenta desde el servicio
+    // 1) intenta obtener preview desde el servicio
     this.reservationPreview = this.chatCtx.get(this.chatId);
 
-    // 2) fallback: history.state (si entraron directo desde un link)
+    // 2) fallback desde history.state (si entraron por deep-link)
     if (!this.reservationPreview) {
       const st = (history?.state ?? {}) as any;
       if (st?.reservationPreview) {
         this.reservationPreview = st.reservationPreview as ReservationPreview;
-
-        // ✅ FIX DE TIPOS: aseguramos que no sea undefined antes de set()
         if (this.reservationPreview) {
-          this.chatCtx.set(this.chatId, this.reservationPreview); // <- ya no marca error
-          // Alternativa equivalente:
-          // this.chatCtx.set(this.chatId, this.reservationPreview!);
+          this.chatCtx.set(this.chatId, this.reservationPreview);
         }
       }
     }
 
-    // autoscroll cuando cambian mensajes
+    // autoscroll al final cuando llegan/actualizan mensajes
     effect(() => {
       const _ = this.msgs();
       queueMicrotask(() => this.scrollToEnd());
@@ -72,6 +68,11 @@ export class ChatThreadComponent {
     this.store.send(this.chatId, text);
     this.draft.set('');
     queueMicrotask(() => this.scrollToEnd());
+  }
+
+  onScroll(e: Event) {
+    const el = e.target as HTMLElement;
+    if (el.scrollTop === 0) this.store.loadMore(this.chatId);
   }
 
   private scrollToEnd() {

@@ -12,26 +12,6 @@ export class ChatApiService {
   private http = inject(HttpClient);
   private base = '/api';
 
-  /** Crea un nuevo chat o devuelve el existente según los parámetros */
-  createOrGet(
-    dto: CreateOrGetByPair | CreateOrGetByPartner
-  ): Observable<{ ok: boolean; data: ApiChat }> {
-    return this.http.post<{ ok: boolean; data: ApiChat }>(`${this.base}/chats`, dto);
-  }
-
-  /** Lista mis chats (cliente o admin) */
-  listMine(roleHint?: Role, q?: string): Observable<{ ok: boolean; data: ApiChat[] }> {
-    let params = new HttpParams();
-    if (roleHint) params = params.set('roleHint', roleHint);
-    if (q) params = params.set('q', q);
-    return this.http.get<{ ok: boolean; data: ApiChat[] }>(`${this.base}/chats`, { params });
-  }
-
-  /** Obtiene un chat */
-  getOne(chatId: string): Observable<{ ok: boolean; data: ApiChat }> {
-    return this.http.get<{ ok: boolean; data: ApiChat }>(`${this.base}/chats/${chatId}`);
-  }
-
   /** Borra un chat (si tu backend lo permite) */
   delete(chatId: string): Observable<{ ok: boolean }> {
     return this.http.delete<{ ok: boolean }>(`${this.base}/chats/${chatId}`);
@@ -42,11 +22,6 @@ export class ChatApiService {
     return this.http.patch<{ ok: boolean; data: ApiChat }>(`${this.base}/chats/${chatId}/meta`, { meta });
   }
 
-  /** Marca como leído. Puedes pasar readerUserId si tu endpoint lo requiere. */
-  markRead(chatId: string, readerUserId?: string): Observable<{ ok: boolean }> {
-    const body = readerUserId ? { readerUserId } : {};
-    return this.http.post<{ ok: boolean }>(`${this.base}/chats/${chatId}/read`, body);
-  }
 
   /** Lista mensajes del chat. Soporta limit y paginación por before/after si tu backend lo expone. */
   listMessages(
@@ -69,4 +44,29 @@ export class ChatApiService {
   sendFile(chatId: string, fileUrl: string, type: 'image' | 'file' = 'file'): Observable<{ ok: boolean; data: ApiMessage }> {
     return this.http.post<{ ok: boolean; data: ApiMessage }>(`${this.base}/chats/${chatId}/messages`, { type, fileUrl });
   }
+
+
+  createOrGet(dto: CreateOrGetByPair): Observable<{ ok: boolean; data: ApiChat }> {
+    return this.http.post<{ ok: boolean; data: ApiChat }>(`${this.base}/chats`, dto);
+  }
+
+  /** Lista mis chats (puedes pasar roleHint='cliente'|'admin') */
+  listMine(roleHint?: Role, q?: string): Observable<{ ok: boolean; data: ApiChat[] }> {
+    let params = new HttpParams();
+    if (roleHint) params = params.set('roleHint', roleHint);
+    if (q)        params = params.set('q', q);
+    return this.http.get<{ ok: boolean; data: ApiChat[] }>(`${this.base}/chats`, { params });
+  }
+
+  /** Obtiene un chat (valida pertenencia en backend) */
+  getOne(chatId: string): Observable<{ ok: boolean; data: ApiChat }> {
+    return this.http.get<{ ok: boolean; data: ApiChat }>(`${this.base}/chats/${chatId}`);
+  }
+
+  /** Marca leídos para el usuario autenticado (o explícito si lo pasas) */
+  markRead(chatId: string, readerUserId?: string): Observable<{ ok: boolean }> {
+    const body = readerUserId ? { readerUserId } : {};
+    return this.http.post<{ ok: boolean }>(`${this.base}/chats/${chatId}/read`, body);
+  }
 }
+

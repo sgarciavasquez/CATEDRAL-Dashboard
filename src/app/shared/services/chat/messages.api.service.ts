@@ -1,7 +1,7 @@
 // shared/services/chat/messages.api.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { ApiMessage } from './chat.types';
 
 @Injectable({ providedIn: 'root' })
@@ -9,34 +9,35 @@ export class MessagesApiService {
   private http = inject(HttpClient);
   private base = '/api';
 
-  /** Lista mensajes de un chat.
-   *  - Puedes pasar limit / before / after para paginar.
-   *  - Devuelve { ok, data } para mantener consistencia con el resto de tu API.
+  /**
+   * Lista mensajes de un chat (paginación hacia arriba).
+   * Backend: GET /chats/:chatId/messages?before&limit
+   * Devuelve SOLO el array de mensajes.
    */
-  list(
-    chatId: string,
-    opts?: { limit?: number; before?: string; after?: string }
-  ): Observable<{ ok: boolean; data: ApiMessage[] }> {
-    let params = new HttpParams();
-    if (opts?.limit)  params = params.set('limit', String(opts.limit));
+  // shared/services/chat/messages.api.service.ts
+  list(chatId: string, opts?: { limit?: number; before?: string }): Observable<ApiMessage[]> {
+    const max = 100; // coincide con @Max(100) del back
+    const lim = Math.max(1, Math.min(max, opts?.limit ?? 50)); // clamp 1..100
+
+    let params = new HttpParams().set('limit', String(lim));
     if (opts?.before) params = params.set('before', opts.before);
-    if (opts?.after)  params = params.set('after', opts.after);
-    return this.http.get<{ ok: boolean; data: ApiMessage[] }>(
-      `${this.base}/chats/${chatId}/messages`,
-      { params }
-    );
-  }
 
-  /** Envía un mensaje de texto */
-  send(chatId: string, text: string): Observable<{ ok: boolean; data: ApiMessage }> {
-    return this.http.post<{ ok: boolean; data: ApiMessage }>(
-      `${this.base}/chats/${chatId}/messages`,
-      { type: 'text', text }
-    );
+    console.log('[chat] API list ->', { chatId, limit: lim, before: opts?.before });
+
+    return this.http
+      .get<{ ok: boolean; data: ApiMessage[] }>(`${this.base}/chats/${chatId}/messages`, { params })
+      .pipe(map(r => r.data ?? []));
   }
 
 
-  create(dto: { chatId: string; type: 'text'|'image'|'file'; text?: string; fileUrl?: string }) {
-    return this.http.post<ApiMessage>(`${this.base}/messages`, dto);
+  /** Envía un mensaje de texto (se mantiene igual) */
+  send(chatId: string, texto: string): Observable<ApiMessage> {
+    const body = { contenido: texto, tipo: 'text' as const };
+    return this.http
+      .post<{ ok: boolean; data: ApiMessage }>(
+        `${this.base}/chats/${chatId}/messages`,
+        body
+      )
+      .pipe(map(r => r.data));
   }
 }

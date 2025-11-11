@@ -1,58 +1,66 @@
-// chat.types.ts
+// shared/services/chat/chat.types.ts
 
-// Importante: en toda tu app usas 'admin' | 'cliente' (no 'customer').
-// Lo alineo para que coincida con ChatInbox, ChatStore y endpoints.
+// Roles que usas en todo el proyecto
 export type Role = 'admin' | 'cliente';
+
+/** === Tipos que vienen del BACKEND (Mongoose) === */
 
 export interface ApiChat {
   _id: string;
-  clienteId: string;
-  adminId: string;
-  unreadByCliente: number; // mensajes que el cliente NO ha leído
-  unreadByAdmin: number;   // mensajes que el admin NO ha leído
-  lastMessage?: { contenido: string; tipo: string; at?: string; emisor?: string };
+  clienteId: string;         // ObjectId string
+  adminId: string;           // ObjectId string
+  unreadByCliente: number;
+  unreadByAdmin: number;
+  lastMessage?: {
+    contenido: string;
+    tipo: 'text' | 'image' | 'file' | string;
+    at?: string;
+    emisor?: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
 
+export type MessageState = 'ENVIADO' | 'ENTREGADO' | 'LEIDO';
+
 export interface ApiMessage {
   _id: string;
-  chatId: string;
-  senderId: string;
-  type: 'text' | 'image' | 'file';
-  text?: string;     // si type === 'text'
-  fileUrl?: string;  // si type === 'image' | 'file'
+  chat: string;              // ObjectId del chat
+  emisor: string;            // ObjectId del user que envía
+  tipo: 'text' | 'image' | 'file' | string;
+  contenido: string;
+  meta?: Record<string, any>;
+  estado: MessageState;
   createdAt: string;
-  readBy?: string[];
+  deliveredAt?: string;
+  readAt?: string;
 }
 
-/** Estructuras de la UI */
+/** === Tipos de la UI (lo que pintas en componentes) === */
+
 export interface ChatRow {
-  id: string;             // = _id
-  otherId: string;        // = adminId | clienteId (el contrario a mi userId)
-  otherName: string;      // nombre resuelto por tu store/servicio (placeholder aquí)
+  id: string;                // = _id
+  otherId: string;           // id del otro participante
+  otherName: string;         // lo resuelves en Store
   last: { text: string; at: string };
-  unread: number;         // contador para MI rol
+  unread: number;            // contador para MI rol
 }
 
 export interface Msg {
-  id: string;             // = _id
-  chatId: string;
-  fromId: string;         // = senderId
-  text: string;           // = message.text
-  at: string;             // = createdAt
+  id: string;                // = _id
+  chatId: string;            // = chat
+  fromId: string;            // = emisor
+  text: string;              // = contenido
+  at: string;                // = createdAt
+  state?: MessageState;      // ENVIADO/ENTREGADO/LEIDO
 }
 
-/* ===========================
-   Utilidades (reusables)
-   =========================== */
+/** === Helpers de mapeo/reutilizables === */
 
-/** true si el usuario pertenece al par del chat */
 export function isParticipant(chat: ApiChat, userId: string): boolean {
   return chat?.clienteId === userId || chat?.adminId === userId;
 }
 
-/** devuelve el otro participante respecto de myId (o null si no calza) */
 export function getOtherParticipantId(chat: ApiChat, myId: string): string | null {
   if (!chat) return null;
   if (chat.clienteId === myId) return chat.adminId;
@@ -60,12 +68,10 @@ export function getOtherParticipantId(chat: ApiChat, myId: string): string | nul
   return null;
 }
 
-/** contador de no leídos según MI rol */
 export function getUnreadForMe(chat: ApiChat, myRole: Role): number {
   return myRole === 'cliente' ? (chat.unreadByCliente ?? 0) : (chat.unreadByAdmin ?? 0);
 }
 
-/** texto/fecha del último mensaje en formato que tu UI ya usaba */
 export function getLastForRow(chat: ApiChat): { text: string; at: string } {
   const lm = chat?.lastMessage;
   return {
@@ -74,11 +80,6 @@ export function getLastForRow(chat: ApiChat): { text: string; at: string } {
   };
 }
 
-/**
- * Mapea ApiChat a ChatRow con valores mínimos.
- * - otherName es string porque normalmente lo resuelves en el Store
- *   (puedes pasarlo cuando lo tengas).
- */
 export function mapApiChatToRow(
   chat: ApiChat,
   myId: string,
@@ -91,5 +92,17 @@ export function mapApiChatToRow(
     otherName,
     last: getLastForRow(chat),
     unread: getUnreadForMe(chat, myRole),
+  };
+}
+
+/** Mapeo ApiMessage -> Msg de UI (útil en tu Store) */
+export function mapApiMessageToMsg(m: ApiMessage): Msg {
+  return {
+    id: m._id,
+    chatId: m.chat,
+    fromId: m.emisor,
+    text: m.contenido,
+    at: m.createdAt,
+    state: m.estado,
   };
 }
