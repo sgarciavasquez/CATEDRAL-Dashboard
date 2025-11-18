@@ -122,11 +122,29 @@ export class ProfilePage {
       console.log('%c[Chat] listMine(cliente) OK', 'color:#22c55e', { count: chats.length, chats });
 
       for (const c of chats) {
-        const match = c?.clienteId === clienteId && !!c?.adminId;
-        console.log('[Chat] revisar chat', { chatId: c?._id, clienteId: c?.clienteId, adminId: c?.adminId, match });
+        // c.clienteId y c.adminId ahora pueden ser string u objeto {_id, name}
+        const cId = typeof c.clienteId === 'string'
+          ? c.clienteId
+          : c.clienteId?._id;
+
+        const aId = typeof c.adminId === 'string'
+          ? c.adminId
+          : c.adminId?._id;
+
+        const match = cId === clienteId && !!aId;
+
+        console.log('[Chat] revisar chat', {
+          chatId: c?._id,
+          rawClienteId: c?.clienteId,
+          rawAdminId: c?.adminId,
+          cId,
+          aId,
+          match,
+        });
+
         if (match) {
-          console.log('%c[Chat] adminId inferido', 'color:#22c55e', c.adminId);
-          return c.adminId;
+          console.log('%c[Chat] adminId inferido', 'color:#22c55e', aId);
+          return aId!;
         }
       }
 
@@ -137,6 +155,8 @@ export class ProfilePage {
       return null;
     }
   }
+
+
 
   async openChat(r: Reservation) {
     console.log('%c[Chat] openChat() -> click', 'color:#0ea5e9', r);
@@ -149,22 +169,18 @@ export class ProfilePage {
       return;
     }
 
-    // 1) Intentar detectar admin con el que ya hubo conversación
-    const adminId = await this.inferAdminId(clienteId);
-    console.log('[Chat] adminId inferido:', adminId);
+    // ---- 1) status / closed ----
+    const statusRaw = (r.status || '').toString().toUpperCase();
+    const closed = statusRaw === 'CONFIRMED' || statusRaw === 'CANCELLED';
+    console.log('[Chat] status reserva:', statusRaw, 'closed:', closed);
 
-    if (!adminId) {
-      this.error = 'No pude detectar con qué administrador chatear. Pídele al admin que te envíe un primer mensaje o definan un admin por defecto.';
-      console.warn('[Chat] Abortar openChat: adminId null.');
-      return;
-    }
-
-    // 2) Armar preview de la reserva
+    // ---- 2) preview de la reserva ----
     const reservationId = (r as any)._id ?? (r as any).id;
     const preview = {
       reservationId,
       createdAt: (r as any).createdAt,
       total: (r as any).total,
+      status: (r as any).status?.toString().toUpperCase() ?? 'PENDING',   // <--- NUEVO
       items: (r as any).items?.map((it: any) => ({
         name: it.name,
         qty: it.qty ?? it.quantity ?? 1,
@@ -174,8 +190,18 @@ export class ProfilePage {
     };
     console.log('[Chat] preview generado:', preview);
 
-    // 3) Llamar a /api/chats con el par (clienteId, adminId)
-    const dto = { clienteId, adminId };
+
+    // ---- 3) Detectar admin con el que ya habló este cliente ----
+    const adminId = await this.inferAdminId(clienteId);
+    console.log('[Chat] adminId inferido:', adminId);
+
+    if (!adminId) {
+      this.error = 'No pude detectar con qué administrador chatear. Pídele al admin que te envíe un primer mensaje o definan un admin por defecto.';
+      console.warn('[Chat] Abortar openChat: adminId null.');
+      return;
+    }
+
+    const dto = { clienteId, adminId, reservationId };
     console.log('%c[Chat] POST /api/chats (createOrGet)', 'color:#a855f7', dto);
 
     try {
@@ -189,13 +215,28 @@ export class ProfilePage {
         return;
       }
 
-      // 4) Guardar contexto y navegar
+      // 4) Guardar contexto local (para cuando vienes desde el perfil)
       this.chatCtx.set(chat._id, preview);
+      console.log('%c[Chat] ChatContext actualizado', 'color:#22c55e', { chatId: chat._id, preview });
+
+      // 5) Actualizar meta en el CHAT del backend (para cuando entres desde la lista de chats)
+      this.chatApi
+        .updateMeta(chat._id, {
+          reservationId,
+          reservationStatus: statusRaw,
+          reservationPreview: preview,
+        })
+        .subscribe({
+          next: (m) => console.log('%c[Chat] meta actualizada en back', 'color:#22c55e', m),
+          error: (e) => console.error('[Chat] updateMeta ERROR', e),
+        });
+
+      // 6) Navegar al chat (pasando también el preview en el state por si acaso)
       console.log('%c[Chat] Navegando a /chat/' + chat._id, 'color:#2563eb');
       this.router.navigate(['/chat', chat._id], { state: { reservationPreview: preview } });
+
     } catch (e: any) {
       console.error('%c[Chat] createOrGet ERROR', 'color:#ef4444', e);
-      // si el backend valida @IsMongoId, verás 400 si adminId no es válido
       this.error = e?.error?.message ?? 'No se pudo abrir el chat. Intenta de nuevo.';
     }
   }

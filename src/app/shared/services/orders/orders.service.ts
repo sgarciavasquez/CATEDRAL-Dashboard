@@ -6,6 +6,7 @@ import { environment } from '../../../../environments/environment';
 import {
   ApiReservation, OrderStatus, toUiReservation, UiReservation
 } from './models/orders.models';
+import { ReservationPreview } from '../../../chat/chat-context.service';
 
 type UpperStatus = 'PENDING'|'CONFIRMED'|'CANCELLED';
 
@@ -61,5 +62,13 @@ export class OrdersService {
 
   cancel(id: string): Observable<UiReservation> {
     return this.http.put<ApiReservation>(`${this.base}/${id}/cancel`, {}).pipe(map(toUiReservation));
+  }
+
+   getPreviewByChat(chatId: string) {
+    return this.http
+      .get<ReservationPreview | { data: ReservationPreview }>(`/api/reservations/by-chat/${chatId}`)
+      .pipe(
+        map((resp: any) => resp?.data ?? resp as ReservationPreview)
+      );
   }
 }

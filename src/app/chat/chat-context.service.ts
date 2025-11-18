@@ -1,17 +1,17 @@
+// chat-context.service.ts
 import { Injectable, signal } from '@angular/core';
 
 export interface ReservationPreview {
   reservationId: string;
   createdAt?: string;
   total?: number;
+  status?: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
   items?: Array<{ name: string; qty: number; price: number; imageUrl?: string }>;
 }
 
 @Injectable({ providedIn: 'root' })
 export class ChatContextService {
-  // Guarda previews por chatId
   private _map = new Map<string, ReservationPreview>();
-  // opcional: último preview (p.ej. si navegas con history.state)
   lastPreview = signal<ReservationPreview | null>(null);
 
   set(chatId: string, preview: ReservationPreview) {

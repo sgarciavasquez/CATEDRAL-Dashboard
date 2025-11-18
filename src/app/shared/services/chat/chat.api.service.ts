@@ -4,8 +4,11 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiChat, ApiMessage, Role } from './chat.types';
 
-type CreateOrGetByPair = { clienteId: string; adminId: string };
+type CreateOrGetByPair = { clienteId: string; adminId: string; reservationId?: string };
 type CreateOrGetByPartner = { partnerId?: string; reservationId?: string }; // por si tu backend también soporta este formato
+type CreateOrGetDto = { clienteId: string; adminId: string; reservationId?: string };
+
+
 
 @Injectable({ providedIn: 'root' })
 export class ChatApiService {
@@ -47,14 +50,16 @@ export class ChatApiService {
 
 
   createOrGet(dto: CreateOrGetByPair): Observable<{ ok: boolean; data: ApiChat }> {
+    console.log('[ChatApi] createOrGet dto =>', dto);
     return this.http.post<{ ok: boolean; data: ApiChat }>(`${this.base}/chats`, dto);
   }
+
 
   /** Lista mis chats (puedes pasar roleHint='cliente'|'admin') */
   listMine(roleHint?: Role, q?: string): Observable<{ ok: boolean; data: ApiChat[] }> {
     let params = new HttpParams();
     if (roleHint) params = params.set('roleHint', roleHint);
-    if (q)        params = params.set('q', q);
+    if (q) params = params.set('q', q);
     return this.http.get<{ ok: boolean; data: ApiChat[] }>(`${this.base}/chats`, { params });
   }
 

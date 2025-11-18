@@ -9,6 +9,7 @@ export interface ReservationItem {
   qty: number;
   imageUrl?: string;
 }
+
 export interface Reservation {
   _id?: string;
   userId: string;
@@ -16,6 +17,25 @@ export interface Reservation {
   status?: string;
   total?: number;
   items: ReservationItem[];
+  chatId?: string;
+}
+
+interface ApiReservation {
+  _id: string;
+  user?: string | { _id?: string; id?: string };
+  total?: number;
+  status?: string;
+  createdAt?: string;
+  reservationDetail?: ApiReservationItem[];
+  items?: Array<{
+    productId: string;
+    code?: string;
+    name: string;
+    imageUrl?: string;
+    price: number;
+    quantity: number;
+  }>;
+  chatId?: string;
 }
 
 interface ApiReservationItem {
@@ -24,15 +44,8 @@ interface ApiReservationItem {
   quantity: number;
   subtotal?: number;
 }
-interface ApiReservation {
-  _id: string;
-  user?: string | { _id?: string; id?: string };
-  total?: number;
-  status?: string;
-  createdAt?: string;
-  reservationDetail?: ApiReservationItem[];
-  items?: Array<{ productId: string; code?: string; name: string; imageUrl?: string; price: number; quantity: number; }>;
-}
+
+
 type UpperStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED';
 
 @Injectable({ providedIn: 'root' })
@@ -103,6 +116,7 @@ export class ReservationService {
       status: a.status ?? 'PENDING',
       total: typeof a.total === 'number' ? a.total : computedTotal,
       items,
+      chatId: a.chatId,       
     };
     return out;
   };
