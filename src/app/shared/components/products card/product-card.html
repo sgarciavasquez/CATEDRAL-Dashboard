@@ -1,18 +1,13 @@
-<article
-  class="group relative pcard h-full flex flex-col rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-3
+<article class="group relative pcard h-full flex flex-col rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-3
          transition hover:shadow-md hover:-translate-y-0.5">
 
   <!-- bloque superior -->
   <div class="flex gap-3 items-start">
     <!-- thumb -->
-    <div
-      class="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-gradient-to-br from-slate-100 to-slate-50
+    <div class="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-gradient-to-br from-slate-100 to-slate-50
              ring-1 ring-black/5 grid place-items-center overflow-hidden">
-      <img
-        [src]="product.imageUrl || 'assets/placeholder.png'"
-        [alt]="product.name"
-        (error)="$event.target['src'] = 'assets/placeholder.png'"
-        class="h-12 w-12 sm:h-14 sm:w-14 object-contain"
+      <img [src]="product.imageUrl || 'assets/placeholder.png'" [alt]="product.name"
+        (error)="$event.target['src'] = 'assets/placeholder.png'" class="h-12 w-12 sm:h-14 sm:w-14 object-contain"
         loading="lazy" decoding="async" />
     </div>
 
@@ -21,8 +16,7 @@
       <span class="text-[10px] tracking-wide text-slate-500">{{ product.code }}</span>
 
       <!-- nombre -->
-      <h3
-        class="mt-0.5 text-[14px] font-semibold text-slate-900 leading-snug
+      <h3 class="mt-0.5 text-[14px] font-semibold text-slate-900 leading-snug
                [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical] overflow-hidden">
         {{ product.name }}
       </h3>
@@ -44,14 +38,11 @@
       </div>
 
       <!-- estrellas debajo del precio -->
-      <div class="mt-1 flex items-center gap-0.5 text-amber-500">
-        <ng-container *ngFor="let s of [1,2,3,4,5]; let i = index">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
-               [class.opacity-30]="i+1 > (product.rating || 0)">
-            <path d="M12 17.3 6 21l1.6-6.9L2 9.6l7-.6L12 2l3 7 7 .6-5.6 4.5L18 21z"/>
-          </svg>
-        </ng-container>
+      <div class="mt-1 flex items-center gap-0.5">
+        <app-star-rating [value]="product.rating || 0" [readOnly]="true" [showNumber]="false">
+        </app-star-rating>
       </div>
+
     </div>
   </div>
 
@@ -59,9 +50,8 @@
   <div class="mt-2 flex-1"></div>
 
   <!-- chips -->
-  <div *ngIf="product.categoryNames?.length" class="mt-2 mb-2 flex flex-wrap gap-1">
-    <span *ngFor="let c of product.categoryNames"
-          class="inline-flex items-center rounded-full bg-slate-100 text-slate-700
+  <div *ngIf="product.categoryNames.length" class="mt-2 mb-2 flex flex-wrap gap-1">
+    <span *ngFor="let c of product.categoryNames" class="inline-flex items-center rounded-full bg-slate-100 text-slate-700
                  text-[10.5px] px-1.5 py-0.5 ring-1 ring-black/5">
       {{ c }}
     </span>
@@ -70,27 +60,22 @@
   <!-- FOOTER de acciones (compacto) -->
   <div class="mt-auto">
     <div class="flex gap-2">
-      <button
-        type="button"
-        (click)="onAddToCart($event)"
-        class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-900 text-white
+      <button type="button" (click)="onAddToCart($event)" class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-900 text-white
                px-3 py-1.5 text-[13px] font-medium shadow hover:brightness-110 active:scale-[.98] transition w-full">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="-ml-0.5">
-          <path d="M3 6h2l2 10h10l2-7H7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-          <circle cx="10" cy="20" r="1.4" fill="currentColor"/>
-          <circle cx="17" cy="20" r="1.4" fill="currentColor"/>
+          <path d="M3 6h2l2 10h10l2-7H7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          <circle cx="10" cy="20" r="1.4" fill="currentColor" />
+          <circle cx="17" cy="20" r="1.4" fill="currentColor" />
         </svg>
         Agregar
       </button>
 
-      <a
-        [routerLink]="['/producto', product.id]"
-        class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300
+      <a [routerLink]="['/producto', product.id]" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300
                px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 active:scale-[.98]
                transition w-full">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>
-          <path d="M12 8v6m0 3h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" />
+          <path d="M12 8v6m0 3h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
         </svg>
         Detalles
       </a>

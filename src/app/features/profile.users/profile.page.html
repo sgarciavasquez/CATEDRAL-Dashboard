@@ -85,8 +85,17 @@
                       {{ it.name }}
                       <span class="text-xs text-neutral-500">· {{ it.qty }} un.</span>
                     </div>
-                    <div class="text-sm font-medium">${{ it.price | number:'1.0-0' }}</div>
+
+                    <!-- ⭐ Rating del perfume en esta reserva -->
+                    <app-star-rating class="mt-1" [value]="it.myRating || it.rating || 0" [showNumber]="false"
+                      (valueChange)="onRated(r, it, $event)">
+                    </app-star-rating>
+
+                    <div class="text-sm font-medium">
+                      ${{ it.price | number:'1.0-0' }}
+                    </div>
                   </div>
+
                 </div>
 
                 <div class="mt-3 flex items-center justify-between gap-3">

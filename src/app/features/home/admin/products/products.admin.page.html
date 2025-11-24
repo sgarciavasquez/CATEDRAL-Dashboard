@@ -108,15 +108,18 @@
                                 class="w-full border rounded px-3 py-2">
                         </div>
 
-                        <!-- EDITAR: Sumar stock al guardar -->
+                        <!-- EDITAR: Editar stock actual -->
                         <div *ngIf="editingId()" class="flex items-center gap-2">
                             <div>
-                                <label class="block text-xs text-neutral-600 mb-1">Agregar stock</label>
-                                <input type="number" [formControl]="addStockCtrl" min="0"
-                                    class="w-28 border rounded px-3 py-2" placeholder="0">
+                                <label class="block text-xs text-neutral-600 mb-1">Stock actual</label>
+                                <input type="number" [formControl]="stockCtrl" min="0"
+                                    class="w-28 border rounded px-3 py-2" />
                             </div>
-                            <div class="text-xs text-neutral-500">Se sumará al guardar.</div>
+                            <div class="text-xs text-neutral-500">
+                                Si cambias el valor y guardas, se actualizará el stock.
+                            </div>
                         </div>
+
 
 
                         <!-- BOTONES -->

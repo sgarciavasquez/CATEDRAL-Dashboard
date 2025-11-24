@@ -4,11 +4,12 @@ import { CartService } from '../../services/cartservice/cart';
 import { Product } from './models/product';
 import { UiProduct } from '../../services/productservice/product.ui';
 import { RouterLink } from '@angular/router';
+import { StarRatingComponent } from "../rating/star-rating.component";
 
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [CommonModule,RouterLink],
+  imports: [CommonModule, RouterLink, StarRatingComponent],
   templateUrl: './product-card.html',
   styleUrls: ['./product-card.css'],
 })

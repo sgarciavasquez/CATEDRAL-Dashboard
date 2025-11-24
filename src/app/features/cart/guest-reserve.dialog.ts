@@ -1,4 +1,4 @@
-// guest-reserve.dialog.ts
+// src/app/features/cart/guest-reserve.dialog.ts
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -25,7 +25,7 @@ export interface GuestReserveData {
     MatInputModule,
     MatButtonModule,
   ],
-  templateUrl: './guest-reserve.dialog.html'
+  templateUrl: './guest-reserve.dialog.html',
 })
 export class GuestReserveDialogComponent {
   private fb = inject(FormBuilder);
@@ -47,4 +47,3 @@ export class GuestReserveDialogComponent {
     this.ref.close();
   }
 }
-

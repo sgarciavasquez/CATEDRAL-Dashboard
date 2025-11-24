@@ -11,8 +11,7 @@
           {{ isAdmin ? 'Bandeja de clientes' : 'Conversaciones con la tienda' }}
         </p>
       </div>
-      <button (click)="refresh()"
-              class="rounded-full border px-3 py-1.5 text-sm hover:bg-slate-50">
+      <button (click)="refresh()" class="rounded-full border px-3 py-1.5 text-sm hover:bg-slate-50">
         Recargar
       </button>
     </div>
@@ -22,9 +21,8 @@
 
     <div *ngIf="!loading && !error" class="bg-white rounded-xl shadow-sm ring-1 ring-black/5 divide-y">
       <ng-container *ngIf="svc.chats$().length; else emptyState">
-        <a *ngFor="let c of svc.chats$()"
-           [routerLink]="[base, c.id]"
-           class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50">
+        <a *ngFor="let c of svc.chats$()" [routerLink]="[base, c.id]"
+          class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50">
           <div class="h-10 w-10 rounded-full bg-slate-200 grid place-items-center">👤</div>
 
           <div class="min-w-0 flex-1">
@@ -36,9 +34,14 @@
           </div>
 
           <span *ngIf="c.unread>0"
-                class="ml-2 min-w-6 h-6 grid place-items-center rounded-full bg-rose-600 text-white text-xs px-1">
+            class="ml-2 min-w-6 h-6 grid place-items-center rounded-full bg-rose-600 text-white text-xs px-1">
             {{ c.unread }}
           </span>
+
+          <button type="button" class="ml-2 p-1 rounded hover:bg-red-50 text-slate-400 hover:text-red-500"
+            (click)="deleteChat(c, $event)">
+            🗑️
+          </button>
         </a>
       </ng-container>
     </div>

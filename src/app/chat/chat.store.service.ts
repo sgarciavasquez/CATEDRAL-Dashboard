@@ -18,11 +18,13 @@ export class ChatStoreService {
   private baseNameForCliente = 'Cliente';
   private baseNameForShop = 'Perfumes Catedral';
 
-  currentUser = signal<{ id: string; name: string; role: 'cliente' | 'admin' }>({
-    id: 'REEMPLAZA_CON_ID_USUARIO',
-    name: 'Yo',
-    role: 'cliente',
-  });
+  currentUser = signal<{ id: string; name: string; role: 'cliente' | 'admin' }>(
+    {
+      id: 'REEMPLAZA_CON_ID_USUARIO',
+      name: 'Yo',
+      role: 'cliente',
+    }
+  );
 
   private _chats = signal<ChatRow[]>([]);
   private _msgs = signal<Msg[]>([]);
@@ -36,29 +38,27 @@ export class ChatStoreService {
     return computed(() => this._msgs().filter((m) => m.chatId === chatId));
   }
 
+  // ---- Polling de inbox ----
+  private inboxPollingTimer: any = null;
+  private inboxPollingRole: Role | null = null;
+
   constructor(
     private chatsApi: ChatApiService,
     private msgsApi: MessagesApiService
-  ) { }
+  ) {}
 
-  /** Mapea ApiChat -> ChatRow para la bandeja */
-  /** Mapea ApiChat -> ChatRow para la bandeja */
-  /** Mapea ApiChat -> ChatRow para la bandeja */
+  /** Mapea ApiChat -> ChatRow usando tus helpers y rellenando nombres por defecto */
   private toRow(api: ApiChat): ChatRow {
     const me = this.currentUser();
     const role: Role = me.role === 'admin' ? 'admin' : 'cliente';
 
-    // Usamos el helper centralizado que ya sabe manejar
-    // clienteId/adminId como string u objeto {_id, name, email}
     const row = mapApiChatToRow(api, me.id, role);
 
-    // Fallbacks por si viene sin nombre del back
+    // Si no hay nombre “bonito”, usamos los fallback
     if (!row.otherName) {
       if (role === 'admin') {
-        // admin viendo a cliente -> Cliente XXXX
         row.otherName = `${this.baseNameForCliente} ${row.otherId.slice(-4)}`;
       } else {
-        // cliente viendo a la tienda
         row.otherName = this.baseNameForShop;
       }
     }
@@ -66,15 +66,11 @@ export class ChatStoreService {
     return row;
   }
 
-
-
-  /** Mapea ApiMessage -> Msg (usa tu helper) */
+  /** Mapea ApiMessage -> Msg */
   private toMsg(api: ApiMessage): Msg {
-    const msg = mapApiMessageToMsg(api);
-    return msg;
+    return mapApiMessageToMsg(api);
   }
 
-  // ----------------- Acciones -----------------
 
   async loadInbox(roleHint?: 'cliente' | 'admin') {
     console.log('[chat.store] loadInbox', { roleHint });
@@ -83,6 +79,39 @@ export class ChatStoreService {
     console.log('[chat.store] inbox rows:', rows);
     this._chats.set(rows);
   }
+
+  /** Arranca polling periódico de la bandeja (notificaciones + preview) */
+  startInboxPolling(role: Role, intervalMs = 5000) {
+    if (this.inboxPollingTimer) {
+      // Ya está corriendo
+      return;
+    }
+    this.inboxPollingRole = role;
+    console.log('[chat.store] startInboxPolling', { role, intervalMs });
+
+    // Primera carga inmediata
+    this.loadInbox(role).catch((e) =>
+      console.error('[chat.store] first loadInbox error', e)
+    );
+
+    this.inboxPollingTimer = setInterval(() => {
+      console.log('[chat.store] polling tick');
+      const r = this.inboxPollingRole || role;
+      this.loadInbox(r).catch((e) =>
+        console.error('[chat.store] polling loadInbox error', e)
+      );
+    }, intervalMs);
+  }
+
+  stopInboxPolling() {
+    if (this.inboxPollingTimer) {
+      console.log('[chat.store] stopInboxPolling');
+      clearInterval(this.inboxPollingTimer);
+      this.inboxPollingTimer = null;
+      this.inboxPollingRole = null;
+    }
+  }
+
 
   async openThread(chatId: string) {
     console.log('[chat.store] openThread ->', { chatId, limit: 100 });
@@ -110,9 +139,7 @@ export class ChatStoreService {
       );
 
       this._chats.update((rows) =>
-        rows.map((r) =>
-          r.id !== chatId ? r : { ...r, unread: 0 }
-        )
+        rows.map((r) => (r.id !== chatId ? r : { ...r, unread: 0 }))
       );
     } catch (e) {
       console.error('[chat.store] openThread error', e);
@@ -173,6 +200,8 @@ export class ChatStoreService {
     );
   }
 
+  // ================== FLAGS / HELPERS ==================
+
   markChatReadLocal(chatId: string) {
     this._chats.update((rows) =>
       rows.map((r) => (r.id !== chatId ? r : { ...r, unread: 0 }))
@@ -184,7 +213,7 @@ export class ChatStoreService {
     name?: string;
     role: 'cliente' | 'admin' | 'customer';
   }) {
-    const role = u.role === 'admin' ? 'admin' : 'cliente';
+    const role: Role = u.role === 'admin' ? 'admin' : 'cliente';
     console.log('[chat.store] setCurrentUser', { u, role });
 
     this.currentUser.set({
@@ -192,5 +221,43 @@ export class ChatStoreService {
       name: u.name ?? 'Yo',
       role,
     });
+  }
+
+  /** Elimina un chat (back + store) – para el basurero del admin */
+  async deleteChat(chatId: string) {
+    console.log('[chat.store] deleteChat ->', chatId);
+    try {
+      await firstValueFrom(this.chatsApi.delete(chatId));
+      this._chats.update((rows) => rows.filter((r) => r.id !== chatId));
+      this._msgs.update((msgs) => msgs.filter((m) => m.chatId !== chatId));
+    } catch (e) {
+      console.error('[chat.store] deleteChat error', e);
+    }
+  }
+
+  /** Solo elimina localmente (si lo necesitas en algún flujo) */
+  removeChat(chatId: string) {
+    this._chats.update((rows) => rows.filter((r) => r.id !== chatId));
+    this._msgs.update((msgs) => msgs.filter((m) => m.chatId !== chatId));
+  }
+
+  /** Para futuro socket.io: actualizar bandeja cuando llega un mensaje nuevo */
+  pushIncomingMessage(api: ApiMessage) {
+    const msg = this.toMsg(api);
+
+    // 1) agregar mensaje a la lista
+    this._msgs.update((prev) => [...prev, msg]);
+
+    // 2) actualizar la fila del chat (last + unread)
+    this._chats.update((rows) =>
+      rows.map((r) => {
+        if (r.id !== msg.chatId) return r;
+        return {
+          ...r,
+          last: { text: msg.text, at: msg.at },
+          unread: r.unread + 1,
+        };
+      })
+    );
   }
 }

@@ -7,8 +7,11 @@ import {
   effect,
   ViewChild,
   ElementRef,
+  OnDestroy,
+
 } from '@angular/core';
 import { CommonModule, NgIf, NgFor } from '@angular/common';
+import { interval, Subscription } from 'rxjs';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
@@ -34,8 +37,10 @@ import { ChatStoreService } from './chat.store.service';
   ],
   templateUrl: './chat-thread.component.html',
 })
-export class ChatThreadComponent {
-  // servicios
+
+export class ChatThreadComponent implements OnDestroy {
+
+  private pollSub?: Subscription; 
   private store = inject(ChatStoreService);
   private route = inject(ActivatedRoute);
   private chatCtx = inject(ChatContextService);
@@ -61,6 +66,10 @@ export class ChatThreadComponent {
 
   constructor() {
     console.log('%c[ChatThread] ctor', 'color:#2563eb', { chatId: this.chatId });
+
+
+    this.store.markChatReadLocal(this.chatId);
+    this.store.openThread(this.chatId); 
 
     // Limpiar badge local y cargar mensajes
     this.store.markChatReadLocal(this.chatId);
@@ -97,7 +106,24 @@ export class ChatThreadComponent {
       const _ = this.msgs();
       queueMicrotask(() => this.scrollToEnd());
     });
+
+    this.startPolling();
   }
+
+  private startPolling() {
+    // si ya hay un polling viejo, lo cortamos
+    this.pollSub?.unsubscribe();
+
+    this.pollSub = interval(4000).subscribe(() => {
+      // recarga los mensajes del chat actual
+      this.store.openThread(this.chatId);
+    });
+  }
+
+   ngOnDestroy(): void {
+    this.pollSub?.unsubscribe();
+  }
+
 
   /** Llama a /reservations/by-chat/:chatId para armar el resumen */
   private loadPreviewByChatId() {
@@ -166,6 +192,6 @@ export class ChatThreadComponent {
         behavior: 'smooth',
         block: 'end',
       });
-    } catch {}
+    } catch { }
   }
 }

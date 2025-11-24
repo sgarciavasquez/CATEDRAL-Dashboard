@@ -12,11 +12,13 @@ import { HeaderComponent } from "../../shared/components/header/header";
 import { MatIconModule } from "@angular/material/icon";
 import { ChatApiService } from '../../shared/services/chat/chat.api.service';
 import { ChatContextService } from '../../chat/chat-context.service';
+import { StarRatingComponent } from '../../shared/components/rating/star-rating.component';
+import { RatingService } from '../../shared/services/rating/rating.service';
 
 @Component({
   selector: 'app-profile-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, NgIf, NgFor, FooterComponent, HeaderComponent, MatIconModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, NgIf, NgFor, FooterComponent, HeaderComponent, MatIconModule, StarRatingComponent,],
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.css'],
 })
@@ -29,6 +31,7 @@ export class ProfilePage {
   private cd = inject(ChangeDetectorRef);
   private chatApi = inject(ChatApiService);
   private chatCtx = inject(ChatContextService);
+  private ratingSvc = inject(RatingService);
 
   loading = false;
   saving = false;
@@ -284,4 +287,47 @@ export class ProfilePage {
     if (!d) return '';
     return new Date(d).toLocaleDateString();
   }
+
+
+  onRated(reservation: Reservation, item: any, value: number) {
+    const reservationId = (reservation as any)._id || (reservation as any).id;
+    const productId = item.productId ||
+      (item.product && ((item.product as any)._id || (item.product as any).id));
+
+    console.log('%c[Profile] onRated()', 'color:#22c55e', {
+      reservationId,
+      productId,
+      value,
+      item,
+    });
+
+    if (!reservationId || !productId) {
+      console.warn('[Profile] faltan ids para votar', { reservationId, productId });
+      alert('No se pudo identificar el producto o la reserva para guardar tu voto.');
+      return;
+    }
+
+    this.ratingSvc
+      .rate({
+        product: String(productId),
+        reservation: String(reservationId),
+        value,
+      })
+      .subscribe({
+        next: (res) => {
+          console.log('%c[Profile] rating guardado OK', 'color:#22c55e', res);
+          // reflejamos inmediatamente en UI
+          (item as any).myRating = value;
+        },
+        error: (err) => {
+          console.error('%c[Profile] error guardando rating', 'color:#ef4444', err);
+          alert(
+            err?.error?.message ||
+            'No se pudo guardar tu puntuación. Intenta de nuevo más tarde.'
+          );
+        },
+      });
+  }
+
+
 }

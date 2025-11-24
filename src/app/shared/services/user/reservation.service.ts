@@ -8,8 +8,9 @@ export interface ReservationItem {
   price: number;
   qty: number;
   imageUrl?: string;
+  rating?: number;
+  myRating?: number;
 }
-
 export interface Reservation {
   _id?: string;
   userId: string;
@@ -45,6 +46,25 @@ interface ApiReservationItem {
   subtotal?: number;
 }
 
+export interface CreateReservationPayload {
+  user: string;  // id del usuario logeado
+  reservationDetail: Array<{
+    product: string;
+    quantity: number;
+  }>;
+}
+
+export interface CreateGuestReservationPayload {
+  name: string;
+  email: string;
+  phone: string;
+  reservationDetail: Array<{
+    product: string;
+    quantity: number;
+  }>;
+}
+
+
 
 type UpperStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED';
 
@@ -70,6 +90,29 @@ export class ReservationService {
         })
       );
   }
+
+  create(payload: CreateReservationPayload): Observable<Reservation> {
+    console.log('%c[ReservationsSvc] create()', 'color:#0ea5e9', payload);
+
+    return this.http
+      .post<ApiReservation>(`${this.base}/reservations`, payload)
+      .pipe(
+        map(this.toReservation),
+        tap((res) => console.log('%c[ReservationsSvc] created:', 'color:#16a34a', res))
+      );
+  }
+
+  createGuestReservation(payload: CreateGuestReservationPayload): Observable<Reservation> {
+    console.log('%c[ReservationsSvc] createGuestReservation()', 'color:#0ea5e9', payload);
+
+    return this.http
+      .post<ApiReservation>(`${this.base}/reservations/guest`, payload)
+      .pipe(
+        map(this.toReservation),
+        tap((res) => console.log('%c[ReservationsSvc] guest created:', 'color:#16a34a', res))
+      );
+  }
+
 
   private toReservation = (a: ApiReservation): Reservation => {
     const userObj = typeof a.user === 'object' ? a.user : undefined;
@@ -116,8 +159,10 @@ export class ReservationService {
       status: a.status ?? 'PENDING',
       total: typeof a.total === 'number' ? a.total : computedTotal,
       items,
-      chatId: a.chatId,       
+      chatId: a.chatId,
     };
     return out;
   };
+
+
 }

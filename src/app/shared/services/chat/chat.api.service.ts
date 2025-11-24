@@ -73,5 +73,8 @@ export class ChatApiService {
     const body = readerUserId ? { readerUserId } : {};
     return this.http.post<{ ok: boolean }>(`${this.base}/chats/${chatId}/read`, body);
   }
+
+  
+
 }
 
