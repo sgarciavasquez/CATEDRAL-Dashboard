@@ -129,7 +129,6 @@ export class CartPage {
         console.log('[CartPage] reserva creada (guest):', res);
         this.cart.clear();
         alert(`Gracias ${data.name}. Te enviamos los detalles de tu reserva a ${data.email}.`);
-        // si quieres, redirige a /perfil cuando luego se registre
       },
       error: (err) => {
         console.error('[CartPage] error createGuest', err);

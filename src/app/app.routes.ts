@@ -12,43 +12,70 @@ import { ProductsAdminPage } from './features/home/admin/products/products.admin
 import { ChatInboxComponent } from './chat/chat-inbox.component';
 import { ChatThreadComponent } from './chat/chat-thread.component';
 
-
 export const routes: Routes = [
+  // HOME
   { path: '', component: HomeComponent, title: 'Catedral Perfumes' },
 
+  // PÚBLICAS
   { path: 'cart', component: CartPage, title: 'Carro' },
-  { path: 'chat', component: ChatInboxComponent, title: 'Mensajes' },
-  { path: 'chat/:id', component: ChatThreadComponent, title: 'Conversación' },
-  
-  { path: 'admin/chat', component: ChatInboxComponent, data: { admin: true }, title: 'Mensajes (Admin)' },
-  { path: 'admin/chat/:id', component: ChatThreadComponent, data: { admin: true }, title: 'Conversación (Admin)' },
 
   {
     path: 'catalogo',
-    loadComponent: () => import('./features/catalog/catalog.page/catalog.page')
-      .then(m => m.CatalogPage),
+    loadComponent: () =>
+      import('./features/catalog/catalog.page/catalog.page')
+        .then(m => m.CatalogPage),
   },
   {
     path: 'producto/:id',
-    loadComponent: () => import('./features/catalog/product.info/product.info')
-      .then(m => m.ProductInfo),
-    data: { renderMode: 'client' } 
+    loadComponent: () =>
+      import('./features/catalog/product.info/product.info')
+        .then(m => m.ProductInfo),
+    data: { renderMode: 'client' },
   },
 
-  // auth
+  // CHAT (cliente)
+  { path: 'chat', component: ChatInboxComponent, title: 'Mensajes' },
+  { path: 'chat/:id', component: ChatThreadComponent, title: 'Conversación' },
+
+  // CHAT (admin)
+  {
+    path: 'admin/chat',
+    component: ChatInboxComponent,
+    data: { admin: true },
+    title: 'Mensajes (Admin)',
+  },
+  {
+    path: 'admin/chat/:id',
+    component: ChatThreadComponent,
+    data: { admin: true },
+    title: 'Conversación (Admin)',
+  },
+
+  // AUTH
   { path: 'auth/login', component: LoginPage, title: 'Ingresar' },
   { path: 'auth/register', component: RegisterPage, title: 'Registro' },
-  { path: 'auth/forgot-password', component: ForgotPasswordPage, title: 'Recuperar contraseña' },
-  { path: 'reset-password', component: ResetPasswordPage, title: 'Restablecer contraseña' },
+  {
+    path: 'auth/forgot-password',
+    component: ForgotPasswordPage,
+    title: 'Recuperar contraseña',
+  },
+  {
+    path: 'reset-password',
+    component: ResetPasswordPage,
+    title: 'Restablecer contraseña',
+  },
 
-  // SOLO LOGUEADO (cualquier rol)
+  // PERFIL (logueado)
   {
     path: 'perfil',
-    loadComponent: () => import('./features/profile.users/profile.page').then(m => m.ProfilePage),
+    loadComponent: () =>
+      import('./features/profile.users/profile.page')
+        .then(m => m.ProfilePage),
     canActivate: [authGuard],
     title: 'Mi perfil',
   },
 
+  // ADMIN: pedidos
   {
     path: 'admin/pedidos',
     canActivate: [authGuard],
@@ -59,6 +86,7 @@ export const routes: Routes = [
     title: 'Administrar pedidos',
   },
 
+  // ADMIN: productos
   {
     path: 'admin/products',
     canActivate: [authGuard],
@@ -69,6 +97,17 @@ export const routes: Routes = [
     title: 'Administrar productos',
   },
 
+  // ADMIN: dashboard
+  {
+    path: 'admin/dashboard',
+    canActivate: [authGuard],
+    data: { roles: ['admin'] },
+    loadComponent: () =>
+      import('./features/home/admin/dashboard/dashboard.page')
+        .then(m => m.DashboardPage),
+    title: 'Dashboard',
+  },
+
+  // WILDCARD (SIEMPRE AL FINAL)
   { path: '**', redirectTo: '' },
 ];
-

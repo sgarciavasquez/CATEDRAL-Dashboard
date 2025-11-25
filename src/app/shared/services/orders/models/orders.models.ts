@@ -1,4 +1,4 @@
-export type OrderStatus = 'pending' | 'completed' | 'cancelled';
+export type OrderStatus = 'pending' | 'confirmed' | 'cancelled';
 
 export interface ApiOrderItem {
   productId: string;
@@ -12,17 +12,12 @@ export interface ApiOrderItem {
 export interface ApiReservation {
   _id: string;
   code?: string;
-
-  // Tu backend puede traer customer o user (id o poblado)
   customer?: { id?: string; name?: string; email?: string; phone?: string };
   user?: string | { _id?: string; id?: string; name?: string; email?: string; phone?: string };
-
-  // Puede devolver 'PENDING'|'COMPLETED'|'CANCELLED' o minúsculas
   status: string;
   createdAt: string;
   reserveDate?: string;
-
-  // Puede venir una de estas dos:
+  chatId?: string | string[];
   items?: ApiOrderItem[];
   reservationDetail?: Array<{
     product: string | {
@@ -41,7 +36,7 @@ export interface ApiReservation {
 }
 
 export interface UiOrderItem {
-  productId?: string;    // para PATCH
+  productId?: string;    
   code?: string;
   name: string;
   imageUrl: string;
@@ -53,7 +48,7 @@ export interface UiOrderItem {
 export interface UiReservation {
   id: string;
   code: string;
-  customerId?: string;   // para PATCH (user)
+  customerId?: string;   
   customerName: string;
   customerEmail?: string;
   customerPhone?: string;
@@ -62,6 +57,7 @@ export interface UiReservation {
   reserveDate?: Date;
   items: UiOrderItem[];
   total: number;
+  chatId?: string | string[];
 }
 
 export function toUiReservation(a: ApiReservation): UiReservation {
@@ -138,5 +134,6 @@ export function toUiReservation(a: ApiReservation): UiReservation {
     reserveDate: a.reserveDate ? new Date(a.reserveDate) : undefined,
     items,
     total,
+    chatId: a.chatId,
   };
 }

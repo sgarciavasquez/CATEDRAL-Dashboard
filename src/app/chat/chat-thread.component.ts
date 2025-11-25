@@ -45,11 +45,12 @@ export class ChatThreadComponent implements OnDestroy {
   private route = inject(ActivatedRoute);
   private chatCtx = inject(ChatContextService);
   private orders = inject(OrdersService);
+  reservationPreview?: ReservationPreview;
+  reservationClosed = false;
+  chatClosed = false;
 
   @ViewChild('endRef') endRef?: ElementRef<HTMLDivElement>;
 
-  reservationPreview?: ReservationPreview;
-  chatClosed = false; // <-- ÚNICA bandera de “cerrado”
 
   me = this.store.currentUser;
   chatId = this.route.snapshot.paramMap.get('id')!;
@@ -153,7 +154,6 @@ export class ChatThreadComponent implements OnDestroy {
 
     this.reservationPreview = { ...p, status };
 
-    // Chat cerrado si la reserva está confirmada o cancelada
     this.chatClosed = status === 'CONFIRMED' || status === 'CANCELLED';
 
     console.log('[ChatThread] applyPreview ->', {
@@ -167,7 +167,7 @@ export class ChatThreadComponent implements OnDestroy {
 
   send() {
     const text = this.draft().trim();
-    if (!text || this.chatClosed) {
+    if (!text || this.chatClosed) {   // 👈 respeta el flag
       if (this.chatClosed) {
         console.warn('[ChatThread] send bloqueado: chat cerrado');
       }

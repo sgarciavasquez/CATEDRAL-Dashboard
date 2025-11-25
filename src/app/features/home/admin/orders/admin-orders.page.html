@@ -24,8 +24,13 @@
           <a routerLink="/admin/products"
             class="px-4 py-2 rounded-lg text-[#4b5563] hover:bg-[#f5f7fb] hover:text-[#2f3f56] transition-colors"
             routerLinkActive="!bg-[#e9eef8] !text-[#2f3f56]">Productos</a>
-          <a
-            class="px-4 py-2 rounded-lg text-[#4b5563] hover:bg-[#f5f7fb] hover:text-[#2f3f56] transition-colors">Dashboards</a>
+
+          <a routerLink="/admin/dashboard"
+            class="px-4 py-2 rounded-lg text-[#4b5563] hover:bg-[#f5f7fb] hover:text-[#2f3f56] transition-colors"
+            routerLinkActive="!bg-[#e9eef8] !text-[#2f3f56]">
+            Dashboards
+          </a>
+
           <a
             class="px-4 py-2 rounded-lg text-[#4b5563] hover:bg-[#f5f7fb] hover:text-[#2f3f56] transition-colors">Clientes</a>
         </nav>
@@ -38,8 +43,8 @@
           (click)="status='all'; load()">Todos</button>
         <button class="px-3 py-1 rounded-full ring-1 ring-[#dfe6f6]" [class.bg-[#e9eef8]]="status==='pending'"
           (click)="status='pending'; load()">Pendientes</button>
-        <button class="px-3 py-1 rounded-full ring-1 ring-[#dfe6f6]" [class.bg-[#e9eef8]]="status==='completed'"
-          (click)="status='completed'; load()">Completados</button>
+        <button class="px-3 py-1 rounded-full ring-1 ring-[#dfe6f6]" [class.bg-[#e9eef8]]="status==='confirmed'"
+          (click)="status='confirmed'; load()">Completados</button>
         <button class="px-3 py-1 rounded-full ring-1 ring-[#dfe6f6]" [class.bg-[#e9eef8]]="status==='cancelled'"
           (click)="status='cancelled'; load()">Cancelados</button>
       </div>
@@ -88,7 +93,7 @@
             <div>
               <span class="text-[11px] px-2 py-1 rounded-full" [ngClass]="{
                 'bg-amber-100 text-amber-800': o.status==='pending',
-                'bg-green-100 text-green-800': o.status==='completed',
+                'bg-green-100 text-green-800': o.status==='confirmed',
                 'bg-red-100 text-red-700': o.status==='cancelled'
               }">
                 {{ o.status }}
@@ -106,6 +111,13 @@
                 class="px-3 py-1 text-xs rounded-full bg-[#2f3f56] text-white hover:bg-[#223149] disabled:opacity-50"
                 [disabled]="o.status!=='pending'" (click)="complete(o)">Completar</button>
             </div>
+
+            <!-- NUEVO: Ver chat (si existe chatId) -->
+            <button *ngIf="o.chatId" type="button"
+              class="px-3 py-1 text-xs rounded-full border border-[#dfe6f6] text-[#2f3f56] hover:bg-[#f5f7fb]"
+              (click)="goToChat(o.chatId)">
+              Ver chat
+            </button>
           </div>
 
           <!-- Detalle -->

@@ -32,8 +32,7 @@ export class LoginPage {
     this.auth.login(this.form.value as any).subscribe({
       next: () => {
         this.loading = false;
-        // ⇨ ir al inbox de chat
-        this.router.navigateByUrl('/chat');
+        this.router.navigateByUrl('/');
       },
       error: (e) => {
         this.loading = false;
