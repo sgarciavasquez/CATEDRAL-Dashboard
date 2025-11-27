@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Catedral Perfumes</string>
+    <string name="title_activity_main">Catedral Perfumes</string>
+    <string name="package_name">com.catedral.perfumes</string>
+    <string name="custom_url_scheme">com.catedral.perfumes</string>
+</resources>
