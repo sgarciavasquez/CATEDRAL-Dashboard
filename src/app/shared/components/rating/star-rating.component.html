@@ -1,0 +1,26 @@
+<div class="flex items-center gap-1">
+  <button
+    *ngFor="let s of starsArray"
+    type="button"
+    class="p-0.5"
+    [class.cursor-pointer]="!readOnly"
+    [class.cursor-default]="readOnly"
+    (click)="set(s)"
+    (mouseenter)="enter(s)"
+    (mouseleave)="leave()"
+  >
+    <span
+      class="material-icons text-xl"
+      [ngClass]="{
+        'text-yellow-400': s <= (hover || value),
+        'text-gray-300': s > (hover || value)
+      }"
+    >
+      {{ s <= (hover || value) ? 'star' : 'star_border' }}
+    </span>
+  </button>
+
+  <span *ngIf="showNumber" class="ml-1 text-xs text-neutral-600">
+    {{ value }}/5
+  </span>
+</div>

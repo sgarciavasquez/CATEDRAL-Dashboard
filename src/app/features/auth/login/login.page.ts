@@ -1,3 +1,4 @@
+// features/auth/login/login.page.ts
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -29,8 +30,14 @@ export class LoginPage {
     if (this.form.invalid) return;
     this.loading = true; this.error = '';
     this.auth.login(this.form.value as any).subscribe({
-      next: () => { this.loading = false; this.router.navigateByUrl('/'); },
-      error: (e) => { this.loading = false; this.error = e?.error?.message ?? 'Error al iniciar sesión'; }
+      next: () => {
+        this.loading = false;
+        this.router.navigateByUrl('/');
+      },
+      error: (e) => {
+        this.loading = false;
+        this.error = e?.error?.message ?? 'Error al iniciar sesión';
+      }
     });
   }
 }

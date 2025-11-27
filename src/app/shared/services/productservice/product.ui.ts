@@ -8,10 +8,11 @@ export interface UiProduct {
   name: string;
   price: number;
   imageUrl: string;
-  rating?: number;
   categoryNames: string[];
   categoryKeys: CatKey[];
   inStock: number;
+  rating?: number;
+  ratingCount?: number;
 }
 
 function catKeyFromName(name: string): CatKey | null {
@@ -31,7 +32,7 @@ function toNum(v: unknown): number {
 function availableFromItem(s: Partial<ApiStock> | undefined): number {
   if (!s) return 0;
   if (Object.prototype.hasOwnProperty.call(s, 'available')
-      && s.available !== undefined && s.available !== null) {
+    && s.available !== undefined && s.available !== null) {
     return Math.max(0, toNum(s.available));
   }
   const q = toNum((s as any).quantity);
@@ -49,13 +50,38 @@ function totalAvailable(stock: ApiProduct['stock']): number {
 
 export function toUiProduct(p: ApiProduct): UiProduct {
   const cats = (p.categories ?? []).map(c =>
-    typeof c === 'string' ? ({ _id: c, name: '' } as ApiCategory) : (c as ApiCategory)
+    typeof c === 'string'
+      ? ({ _id: c, name: '' } as ApiCategory)
+      : (c as ApiCategory)
   );
 
-  const categoryNames = cats.map(c => (c?.name ?? '').trim()).filter(Boolean);
+  const categoryNames = cats
+    .map(c => (c?.name ?? '').trim())
+    .filter(Boolean);
+
   const categoryKeys = categoryNames
     .map(catKeyFromName)
     .filter((x): x is CatKey => !!x);
+
+  
+  const rawRating =
+    (p as any).rating ??        
+    (p as any).ratingAvg ??    
+    0;
+
+  const rating = Number.isFinite(Number(rawRating))
+    ? Math.round(Number(rawRating) * 10) / 10   
+    : 0;
+
+  const ratingCount = Number((p as any).ratingCount ?? 0);
+
+  console.log('%c[UiProduct] map product ->', 'color:#f97316', {
+    id: p._id,
+    name: p.name,
+    rawRating,
+    rating,
+    ratingCount,
+  });
 
   return {
     id: p._id,
@@ -63,11 +89,11 @@ export function toUiProduct(p: ApiProduct): UiProduct {
     name: p.name,
     price: toNum(p.price),
     imageUrl: (p as any).img_url || 'assets/p1.png',
-    rating: 4.7,
     categoryNames,
     categoryKeys,
     inStock: totalAvailable(p.stock), // stock real
-  };
 
-  
+    rating,
+    ratingCount,
+  }
 }

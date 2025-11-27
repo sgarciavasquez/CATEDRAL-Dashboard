@@ -46,15 +46,16 @@ export class ProductsAdminPage implements OnInit {
   loading = signal(true);
   list = signal<ApiProduct[]>([]);
   editingId = signal<string | null>(null);
+  stockCtrl = this.fb.control<number | null>(0);
 
   categories = signal<ApiCategory[]>([]);
   loadingCategories = signal<boolean>(true);
-
-  /** id del documento de stock (para /api/stock/:stockId/add) */
   currentStockId: string | null = null;
 
   /** cuánto sumar al guardar */
   addStockCtrl = this.fb.control<number | null>(0);
+
+
 
   form = this.fb.group({
     code: ['', [Validators.required]],
@@ -101,9 +102,9 @@ export class ProductsAdminPage implements OnInit {
   startEdit(p: ApiProduct) {
     this.editingId.set(p._id);
 
-    // intenta tomar stockId desde la lista (si vino)
     const s: any = Array.isArray((p as any).stock) ? (p as any).stock?.[0] : (p as any).stock;
     this.currentStockId = s?._id ?? null;
+    const currentQty = s?.quantity ?? 0;
 
     const catIds: string[] =
       Array.isArray(p.categories)
@@ -115,18 +116,22 @@ export class ProductsAdminPage implements OnInit {
     this.form.reset({
       code: p.code, name: p.name, price: p.price,
       img_url: p.img_url ?? '', categoriesIds: catIds,
-      initialQuantity: 0, // no se usa al editar
+      initialQuantity: 0,
     });
-    this.addStockCtrl.setValue(0);
 
-    // si no teníamos stockId, lo traemos del detalle
+    // aquí seteas el stock actual en el input
+    this.stockCtrl.setValue(currentQty);
+
+    // si no teníamos stockId (por ej. viene sin populate), lo traemos del detalle
     if (!this.currentStockId) {
       this.products.get(p._id).subscribe(full => {
         const fs: any = Array.isArray((full as any).stock) ? (full as any).stock?.[0] : (full as any).stock;
         this.currentStockId = fs?._id ?? null;
+        this.stockCtrl.setValue(fs?.quantity ?? 0);
       });
     }
   }
+
 
   openCategoriesDialog() {
     this.dialog.open(CategoriesCrudComponent, {
@@ -153,25 +158,18 @@ export class ProductsAdminPage implements OnInit {
     const id = this.editingId();
 
     // === EDITAR ===
+    // === EDITAR ===
     if (id) {
-      const add = Number(this.addStockCtrl.value ?? 0);
+      const newQty = Number(this.stockCtrl.value ?? NaN);
 
       this.products.update(id, payload).pipe(
         switchMap(() => {
-          // si no hay que sumar stock, terminamos
-          if (!(Number.isFinite(add) && add > 0)) return of(null);
+          // si no tenemos stockId o el valor no es válido, no hacemos nada extra
+          if (!this.currentStockId) return of(null);
+          if (!Number.isFinite(newQty) || newQty < 0) return of(null);
 
-          // si ya tenemos stockId, sumamos; si no, pedimos el detalle y sumamos
-          if (this.currentStockId) {
-            return this.products.increaseStockByStockId(this.currentStockId, add);
-          }
-          return this.products.get(id).pipe(
-            switchMap(full => {
-              const s: any = Array.isArray((full as any).stock) ? (full as any).stock?.[0] : (full as any).stock;
-              const stockId = s?._id;
-              return stockId ? this.products.increaseStockByStockId(stockId, add) : of(null);
-            })
-          );
+          // PATCH al stock para dejarlo en el valor nuevo
+          return this.products.setStockByStockId(this.currentStockId, newQty);
         })
       ).subscribe({
         next: () => { this.startCreate(); this.load(); },
@@ -180,6 +178,7 @@ export class ProductsAdminPage implements OnInit {
 
       return;
     }
+
 
     // === CREAR === (usa initialQuantity en el backend)
     this.products.create(payload).subscribe({

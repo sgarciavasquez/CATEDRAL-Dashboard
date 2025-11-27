@@ -80,10 +80,11 @@ export class ProductService {
     );
   }
 
-  // ====== Stock (única función, acorde a tu API) ======
-  increaseStockByStockId(stockId: string, amount: number) {
-    return this.http.post<ApiProduct>(`/api/stock/${stockId}/add`, { amount });
+  setStockByStockId(stockId: string, quantity: number) {
+    return this.http.patch(`/api/stock/${stockId}`, { quantity });
   }
+
+
 
   // ====== CRUD ======
   create(payload: SaveProductPayload): Observable<ApiProduct> {

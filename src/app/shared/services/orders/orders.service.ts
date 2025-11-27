@@ -6,31 +6,16 @@ import { environment } from '../../../../environments/environment';
 import {
   ApiReservation, OrderStatus, toUiReservation, UiReservation
 } from './models/orders.models';
+import { ReservationPreview } from '../../../chat/chat-context.service';
 
 type UpperStatus = 'PENDING'|'CONFIRMED'|'CANCELLED';
 
-interface CreateReservationDetailDto {
-  product: string;   // ObjectId
-  quantity: number;  // >=1
-  subtotal: number;  // >=0
-}
-interface CreateReservationDto {
-  user: string; // ObjectId
-  status: UpperStatus;
+// ---- NUEVO: tipo helper para respuestas paginadas ----
+interface ApiPage<T> {
+  items: T[];
   total: number;
-  reservationDetail: CreateReservationDetailDto[];
-}
-
-interface UpdateReservationDetailDto {
-  product: string;
-  quantity: number;
-  subtotal: number;
-}
-interface UpdateReservationDto {
-  user: string; // ObjectId
-  status: UpperStatus;
-  total: number;
-  reservationDetail: UpdateReservationDetailDto[];
+  page: number;
+  limit: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -39,35 +24,51 @@ export class OrdersService {
   private base = `${environment.apiUrl}/reservations`;
 
   list(opts?: { status?: OrderStatus }): Observable<UiReservation[]> {
-  let params = new HttpParams();
-  if (opts?.status) {
-    params = params.set('status', String(opts.status).toUpperCase());
-  }
-  return this.http.get<ApiReservation[]>(this.base, { params }).pipe(
-    map(arr => (arr ?? []).map(toUiReservation))
-  );
-}
+    let params = new HttpParams();
+    if (opts?.status) params = params.set('status', opts.status.toUpperCase());
 
-  // Crear reserva 
-  create(payload: CreateReservationDto): Observable<UiReservation> {
-    return this.http.post<ApiReservation>(this.base, payload)
-      .pipe(map(toUiReservation));
+    return this.http
+      // 👇 Puede venir array o paginado
+      .get<ApiReservation[] | ApiPage<ApiReservation>>(this.base, { params })
+      .pipe(
+        map(resp => {
+          const arr = Array.isArray(resp) ? resp : (resp?.items ?? []);
+          return arr.map(toUiReservation);
+        })
+      );
   }
 
-  // Editar reserva 
-  update(id: string, payload: UpdateReservationDto): Observable<UiReservation> {
-    return this.http.patch<ApiReservation>(`${this.base}/${id}`, payload)
-      .pipe(map(toUiReservation));
+  create(payload: {
+    user: string;
+    status: UpperStatus;
+    total: number;
+    reservationDetail: { product: string; quantity: number; subtotal: number }[];
+  }): Observable<UiReservation> {
+    return this.http.post<ApiReservation>(this.base, payload).pipe(map(toUiReservation));
+  }
+
+  update(id: string, payload: {
+    user: string;
+    status: UpperStatus;
+    total: number;
+    reservationDetail: { product: string; quantity: number; subtotal: number }[];
+  }): Observable<UiReservation> {
+    return this.http.patch<ApiReservation>(`${this.base}/${id}`, payload).pipe(map(toUiReservation));
   }
 
   complete(id: string): Observable<UiReservation> {
-    return this.http.put<ApiReservation>(`${this.base}/${id}/complete`, {})
-      .pipe(map(toUiReservation));
+    return this.http.put<ApiReservation>(`${this.base}/${id}/complete`, {}).pipe(map(toUiReservation));
   }
 
   cancel(id: string): Observable<UiReservation> {
-    return this.http.put<ApiReservation>(`${this.base}/${id}/cancel`, {})
-      .pipe(map(toUiReservation));
+    return this.http.put<ApiReservation>(`${this.base}/${id}/cancel`, {}).pipe(map(toUiReservation));
   }
 
+   getPreviewByChat(chatId: string) {
+    return this.http
+      .get<ReservationPreview | { data: ReservationPreview }>(`/api/reservations/by-chat/${chatId}`)
+      .pipe(
+        map((resp: any) => resp?.data ?? resp as ReservationPreview)
+      );
+  }
 }

@@ -1,3 +1,4 @@
+// src/app/shared/services/authservice/auth.interceptor.ts
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from './auth';
@@ -14,7 +15,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError(err => {
-      // No intervenir en llamadas de autenticación
       const isAuthCall = req.url.includes('/auth/');
       const isPublicGet = req.method === 'GET' && !isAuthCall;
 

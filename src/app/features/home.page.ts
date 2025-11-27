@@ -19,7 +19,7 @@ import { Product } from '../shared/components/products card/models/product';
     ProductCardComponent,
     HeroCarouselComponent,
     CategoryPillsComponent,
-    RouterLink, FooterComponent ,
+    RouterLink, FooterComponent,
   ],
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.css'],
@@ -34,7 +34,12 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.productsSrv.listUi().subscribe({
       next: list => {
-        this.bestSellers = list.slice(0, 6);   
+        const sorted = [...list].sort(
+          (a, b) => (b.rating ?? 0) - (a.rating ?? 0)
+        );
+
+        this.bestSellers = sorted.slice(0, 6);
+
         this.loading = false;
       },
       error: err => {
