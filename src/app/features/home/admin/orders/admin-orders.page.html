@@ -1,63 +1,68 @@
 <app-header></app-header>
-<div class="min-h-screen flex flex-col">
 
-
+<div class="min-h-screen flex flex-col bg-[#f7f9fc]">
+  <!-- HEADER -->
   <div class="bg-white">
-    <div class="container-7xl py-4 flex items-center justify-between">
-      <h1 class="text-xl font-semibold text-[#2f3f56]">Administrar pedidos</h1>
-      <div class="flex items-center gap-2 text-sm text-neutral-600">
-        <span class="hidden sm:inline">Ordenar por:</span>
-        <select class="rounded-lg px-2 py-1 ring-1 ring-[#dfe6f6] bg-white" [(ngModel)]="orderBy"
-          (change)="items = sort(items)">
-          <option value="date">Fecha</option>
-          <option value="amount">Monto</option>
-        </select>
-      </div>
+    <div class="container-7xl py-4">
+      <h1 class="text-xl font-semibold text-[#2f3f56]">
+        Administrar pedidos
+      </h1>
     </div>
   </div>
 
   <div class="container-7xl my-4 grid grid-cols-12 gap-6">
+    <!-- SIDEBAR -->
     <aside class="col-span-12 md:col-span-3">
-      <div class="bg-white rounded-2xl ring-1 ring-[#e8ecf4] p-3">
-        <nav class="flex flex-col text-sm font-medium">
-          <a class="px-4 py-2 rounded-lg bg-[#f5f7fb] text-[#2f3f56] shadow-sm">Pedidos</a>
-          <a routerLink="/admin/products"
-            class="px-4 py-2 rounded-lg text-[#4b5563] hover:bg-[#f5f7fb] hover:text-[#2f3f56] transition-colors"
-            routerLinkActive="!bg-[#e9eef8] !text-[#2f3f56]">Productos</a>
-
-          <a routerLink="/admin/dashboard"
-            class="px-4 py-2 rounded-lg text-[#4b5563] hover:bg-[#f5f7fb] hover:text-[#2f3f56] transition-colors"
-            routerLinkActive="!bg-[#e9eef8] !text-[#2f3f56]">
-            Dashboards
-          </a>
-
-          <a
-            class="px-4 py-2 rounded-lg text-[#4b5563] hover:bg-[#f5f7fb] hover:text-[#2f3f56] transition-colors">Clientes</a>
-        </nav>
-      </div>
+      <app-admin-sidebar></app-admin-sidebar>
     </aside>
 
+    <!-- CONTENIDO PRINCIPAL -->
     <section class="col-span-12 md:col-span-9">
-      <div class="mb-3 flex flex-wrap gap-2 text-sm">
-        <button class="px-3 py-1 rounded-full ring-1 ring-[#dfe6f6]" [class.bg-[#e9eef8]]="status==='all'"
-          (click)="status='all'; load()">Todos</button>
-        <button class="px-3 py-1 rounded-full ring-1 ring-[#dfe6f6]" [class.bg-[#e9eef8]]="status==='pending'"
-          (click)="status='pending'; load()">Pendientes</button>
-        <button class="px-3 py-1 rounded-full ring-1 ring-[#dfe6f6]" [class.bg-[#e9eef8]]="status==='confirmed'"
-          (click)="status='confirmed'; load()">Completados</button>
-        <button class="px-3 py-1 rounded-full ring-1 ring-[#dfe6f6]" [class.bg-[#e9eef8]]="status==='cancelled'"
-          (click)="status='cancelled'; load()">Cancelados</button>
+      <!-- filtros  -->
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-3 text-sm">
+        <div class="flex flex-wrap gap-2">
+          <button class="px-3 py-1 rounded-full ring-1 ring-[#dfe6f6]" [class.bg-[#e9eef8]]="status === 'all'"
+            (click)="status = 'all'; load()">
+            Todos
+          </button>
+          <button class="px-3 py-1 rounded-full ring-1 ring-[#dfe6f6]" [class.bg-[#e9eef8]]="status === 'pending'"
+            (click)="status = 'pending'; load()">
+            Pendientes
+          </button>
+          <button class="px-3 py-1 rounded-full ring-1 ring-[#dfe6f6]" [class.bg-[#e9eef8]]="status === 'confirmed'"
+            (click)="status = 'confirmed'; load()">
+            Completados
+          </button>
+          <button class="px-3 py-1 rounded-full ring-1 ring-[#dfe6f6]" [class.bg-[#e9eef8]]="status === 'cancelled'"
+            (click)="status = 'cancelled'; load()">
+            Cancelados
+          </button>
+        </div>
+
+        <!-- Ordenar por -->
+        <div class="flex items-center gap-2 text-xs sm:text-sm text-neutral-600">
+          <span class="hidden sm:inline">Ordenar por:</span>
+          <select class="rounded-full px-2 py-1 ring-1 ring-[#dfe6f6] bg-white text-xs sm:text-sm" [(ngModel)]="orderBy"
+            (change)="onOrderChange()">
+            <option value="date">Fecha</option>
+            <option value="amount">Monto</option>
+          </select>
+        </div>
       </div>
 
+      <!-- loading / error -->
       <div *ngIf="loading" class="space-y-2">
         <div class="h-12 rounded-xl bg-stone-200 animate-pulse"></div>
         <div class="h-12 rounded-xl bg-stone-200 animate-pulse"></div>
         <div class="h-12 rounded-xl bg-stone-200 animate-pulse"></div>
       </div>
-      <div *ngIf="!loading && error" class="text-sm text-red-600 py-6">{{ error }}</div>
+      <div *ngIf="!loading && error" class="text-sm text-red-600 py-6">
+        {{ error }}
+      </div>
 
+      <!-- tabla -->
       <div *ngIf="!loading && !error" class="rounded-2xl ring-1 ring-[#e8ecf4] overflow-hidden bg-white">
-        <div class="grid grid-cols-[80px_1fr_140px_120px_200px] px-4 py-2 text-[12px] text-neutral-500 bg-[#f5f7fb]">
+        <div class="grid grid-cols-[80px_1fr_140px_120px_200px] items-center px-4 py-3 h-[92px]">
           <div># Pedido</div>
           <div>Cliente</div>
           <div>Estado</div>
@@ -65,12 +70,17 @@
           <div class="text-right">Acciones</div>
         </div>
 
-        <div *ngFor="let o of items" class="border-t border-[#eef2fa]">
-          <div class="grid grid-cols-[80px_1fr_140px_120px_200px] items-center px-4 py-3">
+        <!-- filas (paginadas) -->
+        <div *ngFor="let o of pagedItems" class="border-t border-[#eef2fa]">
+          <div class="grid grid-cols-[80px_1fr_140px_120px_200px] items-center px-4 py-3 h-[92px]">
             <div class="flex items-center gap-2">
               <button class="w-6 h-6 grid place-items-center rounded-full ring-1 ring-[#e8ecf4] bg-white text-xs"
-                (click)="toggle(o.id)" [attr.aria-expanded]="expanded()[o.id] ? 'true' : 'false'" title="Ver detalle">
-                <span [style.transform]="expanded()[o.id] ? 'rotate(180deg)' : ''">⌄</span>
+                (click)="toggle(o.id)" [attr.aria-expanded]="
+                  expanded()[o.id] ? 'true' : 'false'
+                " title="Ver detalle">
+                <span [style.transform]="
+                    expanded()[o.id] ? 'rotate(180deg)' : ''
+                  ">⌄</span>
               </button>
               <span class="text-xs text-neutral-600">#{{ o.code }}</span>
             </div>
@@ -81,38 +91,60 @@
                 {{ o.customerName || o.customerId || '(sin datos)' }}
               </div>
               <div class="text-[11px] text-neutral-500">
-                <ng-container *ngIf="o.customerEmail"> {{ o.customerEmail }} · </ng-container>
-                <ng-container *ngIf="o.customerPhone"> {{ o.customerPhone }} · </ng-container>
-                {{ o.createdAt | date:'dd/MM/yyyy' }}
+                <ng-container *ngIf="o.customerEmail">
+                  {{ o.customerEmail }} ·
+                </ng-container>
+                <ng-container *ngIf="o.customerPhone">
+                  {{ o.customerPhone }} ·
+                </ng-container>
+                {{ o.createdAt | date : 'dd/MM/yyyy' }}
                 <ng-container *ngIf="o.reserveDate">
-                  · Reserva: {{ o.reserveDate | date:'dd/MM/yyyy' }}
+                  · Reserva:
+                  {{ o.reserveDate | date : 'dd/MM/yyyy' }}
                 </ng-container>
               </div>
             </div>
 
             <div>
               <span class="text-[11px] px-2 py-1 rounded-full" [ngClass]="{
-                'bg-amber-100 text-amber-800': o.status==='pending',
-                'bg-green-100 text-green-800': o.status==='confirmed',
-                'bg-red-100 text-red-700': o.status==='cancelled'
-              }">
+                  'bg-amber-100 text-amber-800': o.status === 'pending',
+                  'bg-green-100 text-green-800':
+                    o.status === 'confirmed',
+                  'bg-red-100 text-red-700':
+                    o.status === 'cancelled'
+                }">
                 {{ o.status }}
               </span>
             </div>
 
             <div class="font-semibold text-sm">
-              {{ o.total | currency:'CLP':'symbol-narrow':'1.0-0' }}
+              {{
+              o.total
+              | currency : 'CLP' : 'symbol-narrow' : '1.0-0'
+              }}
             </div>
 
             <div class="flex justify-end gap-2">
               <button class="px-3 py-1 text-xs rounded-full bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
-                [disabled]="o.status!=='pending'" (click)="cancel(o)">Cancelar</button>
+                [disabled]="o.status !== 'pending'" (click)="cancel(o)">
+                Cancelar
+              </button>
+
               <button
                 class="px-3 py-1 text-xs rounded-full bg-[#2f3f56] text-white hover:bg-[#223149] disabled:opacity-50"
-                [disabled]="o.status!=='pending'" (click)="complete(o)">Completar</button>
+                [disabled]="o.status !== 'pending'" (click)="complete(o)">
+                Completar
+              </button>
+
+              <button *ngIf="o.status === 'confirmed' || o.status === 'cancelled'"
+                class="px-3 py-1 text-xs rounded-full border border-[#2f3f56] text-[#2f3f56] hover:bg-[#f3f5f8]"
+                (click)="reopen(o)">
+                Re-abrir
+              </button>
             </div>
 
-            <!-- NUEVO: Ver chat (si existe chatId) -->
+
+            <!-- Ver chat -->
             <button *ngIf="o.chatId" type="button"
               class="px-3 py-1 text-xs rounded-full border border-[#dfe6f6] text-[#2f3f56] hover:bg-[#f5f7fb]"
               (click)="goToChat(o.chatId)">
@@ -128,13 +160,25 @@
                   class="flex items-center gap-3 bg-white rounded-lg p-2 ring-1 ring-[#e8ecf4]">
                   <img [src]="it.imageUrl" [alt]="it.name" class="w-10 h-10 rounded object-contain" />
                   <div class="flex-1">
-                    <div class="text-sm">{{ it.code ? (it.code + ' ') : '' }}{{ it.name }}</div>
+                    <div class="text-sm">
+                      {{ it.code ? it.code + ' ' : '' }}{{ it.name }}
+                    </div>
                     <div class="text-[11px] text-neutral-500">
-                      {{ it.quantity }} un. × {{ it.price | currency:'CLP':'symbol-narrow':'1.0-0' }}
+                      {{ it.quantity }} un. ×
+                      {{
+                      it.price
+                      | currency
+                      : 'CLP'
+                      : 'symbol-narrow'
+                      : '1.0-0'
+                      }}
                     </div>
                   </div>
                   <div class="text-sm font-medium">
-                    {{ it.lineTotal | currency:'CLP':'symbol-narrow':'1.0-0' }}
+                    {{
+                    it.lineTotal
+                    | currency : 'CLP' : 'symbol-narrow' : '1.0-0'
+                    }}
                   </div>
                 </div>
               </ng-container>
@@ -149,6 +193,39 @@
 
         <div *ngIf="items.length === 0" class="px-4 py-8 text-sm text-neutral-500">
           No hay pedidos para este filtro.
+        </div>
+      </div>
+
+      <!-- PAGINADOR -->
+      <div
+        class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm text-neutral-600">
+        <!-- texto -->
+        <div>
+          Mostrando
+          <span class="font-semibold">{{ fromItem }}</span>
+          –
+          <span class="font-semibold">{{ toItem }}</span>
+          de
+          <span class="font-semibold">{{ totalItems }}</span>
+          pedidos
+        </div>
+
+        <!-- controles -->
+        <div class="flex items-center gap-1">
+          <button class="px-2 py-1 rounded-full border border-[#dfe6f6] bg-white disabled:opacity-40"
+            [disabled]="page <= 1 || totalItems === 0" (click)="goToPage(page - 1)">
+            ‹
+          </button>
+
+          <button *ngFor="let p of pages" class="w-7 h-7 rounded-full text-center text-xs border border-[#dfe6f6]"
+            [class.bg-[#2f3f56]]="p === page" [class.text-white]="p === page" (click)="goToPage(p)">
+            {{ p }}
+          </button>
+
+          <button class="px-2 py-1 rounded-full border border-[#dfe6f6] bg-white disabled:opacity-40"
+            [disabled]="page >= totalPages || totalItems === 0" (click)="goToPage(page + 1)">
+            ›
+          </button>
         </div>
       </div>
     </section>

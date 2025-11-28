@@ -5,6 +5,7 @@ import { FooterComponent } from '../../../../shared/components/footer/footer';
 import { StatusDonutComponent } from './charts/status-donut.component';
 import { MonthlyBarChartComponent } from './charts/monthly-bar-chart.component';
 import { DashboardService } from './services/dashboard.service';
+import { AdminSidebarComponent } from "../../../../shared/components/sidebar/admin-sidebar.component";
 
 
 @Component({
@@ -16,7 +17,8 @@ import { DashboardService } from './services/dashboard.service';
     FooterComponent,
     StatusDonutComponent,
     MonthlyBarChartComponent,
-  ],
+    AdminSidebarComponent
+],
   templateUrl: './dashboard.page.html',
 })
 export class DashboardPage implements OnInit {

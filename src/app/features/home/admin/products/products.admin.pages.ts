@@ -18,6 +18,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { CategoriesCrudComponent } from '../categorys/categories-crud.component';
 import { of, switchMap } from 'rxjs';
+import { AdminSidebarComponent } from "../../../../shared/components/sidebar/admin-sidebar.component";
 
 @Component({
   standalone: true,
@@ -32,8 +33,9 @@ import { of, switchMap } from 'rxjs';
     MatInputModule,
     MatIconModule,
     MatButtonModule,
-    MatDialogModule
-  ],
+    MatDialogModule,
+    AdminSidebarComponent
+],
   templateUrl: './products.admin.page.html',
   styleUrls: ['./products.admin.page.css'],
 })

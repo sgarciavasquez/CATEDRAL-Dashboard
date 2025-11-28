@@ -1,144 +1,159 @@
 <app-header></app-header>
-<div class="min-h-screen flex flex-col">
 
-    <main class="container-7xl py-6">
-        <h1 class="text-xl font-semibold mb-4">Administrar productos</h1>
+<div class="min-h-screen flex flex-col bg-[#f7f9fc]">
 
-        <div class="grid gap-6 md:grid-cols-12">
-            <!-- LISTA -->
-            <section class="md:col-span-7">
-                <div class="rounded-xl border bg-white p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <h2 class="font-medium">Listado</h2>
-                        <button class="px-3 py-1.5 rounded bg-[#2f3f56] text-white"
-                            (click)="startCreate()">Nuevo</button>
-                    </div>
+    <div class="container-7xl py-6">
+        <h1 class="text-xl font-semibold mb-4 text-[#2f3f56]">Administrar productos</h1>
 
-                    <div *ngIf="loading()" class="text-sm text-neutral-500">Cargando…</div>
+        <div class="grid grid-cols-12 gap-6">
+            <!-- SIDEBAR -->
+            <aside class="col-span-12 md:col-span-3">
+                <app-admin-sidebar></app-admin-sidebar>
+            </aside>
 
-                    <table *ngIf="!loading()" class="w-full text-sm">
-                        <thead>
-                            <tr class="text-left text-neutral-500">
-                                <th class="py-2">Código</th>
-                                <th class="py-2">Nombre</th>
-                                <th class="py-2">Categorías</th>
-                                <th class="py-2">Precio</th>
-                                <th class="py-2 w-32">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let p of list()" class="border-t">
-                                <td class="py-2 font-mono">{{ p.code }}</td>
-
-                                <td class="py-2">{{ p.name }}</td>
-
-                                <td class="py-2">{{ displayCategories(p) }} </td>
-
-                                <td class="py-2">${{ p.price | number }}</td>
-
-                                <td class="py-2">
-                                    <button class="px-2 py-1 rounded border mr-1" (click)="startEdit(p)">Editar</button>
-                                    <button class="px-2 py-1 rounded border text-red-700"
-                                        (click)="remove(p)">Borrar</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- FORM -->
-            <section class="md:col-span-5">
-                <div class="rounded-xl border bg-white p-4">
-                    <h2 class="font-medium mb-3">{{ editingId() ? 'Editar producto' : 'Nuevo producto' }}</h2>
-
-                    <form [formGroup]="form" (ngSubmit)="submit()" class="grid gap-3">
-                        <div>
-                            <label class="block text-xs text-neutral-600 mb-1">Código</label>
-                            <input formControlName="code" class="w-full border rounded px-3 py-2">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs text-neutral-600 mb-1">Nombre</label>
-                            <input formControlName="name" class="w-full border rounded px-3 py-2">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs text-neutral-600 mb-1">Precio</label>
-                            <input type="number" formControlName="price" class="w-full border rounded px-3 py-2">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs text-neutral-600 mb-1">Imagen (URL)</label>
-                            <input formControlName="img_url" class="w-full border rounded px-3 py-2">
-                        </div>
-
-                        <!-- CHIPS SELECCIONADAS ARRIBA -->
-                        <div class="selected-chips" *ngIf="(form.get('categoriesIds')?.value?.length || 0) > 0">
-                            <span class="chip" *ngFor="let id of form.get('categoriesIds')?.value">
-                                {{ getCategoryName(id) }}
-                                <button type="button" class="chip-x" (click)="unselectCategory(id)"
-                                    aria-label="Quitar">×</button>
-                            </span>
-                            <button type="button" class="chip clear" (click)="clearCategories()"
-                                aria-label="Limpiar categorías">
-                                Limpiar
-                            </button>
-                        </div>
-
-                        <!-- SELECT MULTIPLE -->
-                        <mat-form-field appearance="fill" class="w-full">
-                            <mat-label>Selecciona categorías</mat-label>
-                            <mat-select formControlName="categoriesIds" multiple [panelClass]="'cat-panel'">
-                                <!-- Trigger vacío: evita que se vean “diseñador, nicho, …” -->
-                                <mat-select-trigger>
-
-                                </mat-select-trigger>
-
-                                <mat-option *ngFor="let c of categories()" [value]="c._id">
-                                    {{ c.name }}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-
-                        <!-- CREAR: Stock inicial (ya lo tienes) -->
-                        <div *ngIf="!editingId()">
-                            <label class="block text-xs text-neutral-600 mb-1">Stock inicial</label>
-                            <input type="number" formControlName="initialQuantity" min="0"
-                                class="w-full border rounded px-3 py-2">
-                        </div>
-
-                        <!-- EDITAR: Editar stock actual -->
-                        <div *ngIf="editingId()" class="flex items-center gap-2">
-                            <div>
-                                <label class="block text-xs text-neutral-600 mb-1">Stock actual</label>
-                                <input type="number" [formControl]="stockCtrl" min="0"
-                                    class="w-28 border rounded px-3 py-2" />
+            <!-- CONTENIDO PRINCIPAL -->
+            <section class="col-span-12 md:col-span-9">
+                <div class="grid gap-6 md:grid-cols-12">
+                    <!-- LISTA -->
+                    <section class="md:col-span-7">
+                        <div class="rounded-xl border bg-white p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <h2 class="font-medium">Listado</h2>
+                                <button class="px-3 py-1.5 rounded bg-[#2f3f56] text-white" (click)="startCreate()">
+                                    Nuevo
+                                </button>
                             </div>
-                            <div class="text-xs text-neutral-500">
-                                Si cambias el valor y guardas, se actualizará el stock.
+
+                            <div *ngIf="loading()" class="text-sm text-neutral-500">
+                                Cargando…
                             </div>
+
+                            <table *ngIf="!loading()" class="w-full text-sm">
+                                <thead>
+                                    <tr class="text-left text-neutral-500">
+                                        <th class="py-2">Código</th>
+                                        <th class="py-2">Nombre</th>
+                                        <th class="py-2">Categorías</th>
+                                        <th class="py-2">Precio</th>
+                                        <th class="py-2 w-32">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let p of list()" class="border-t">
+                                        <td class="py-2 font-mono">{{ p.code }}</td>
+                                        <td class="py-2">{{ p.name }}</td>
+                                        <td class="py-2">{{ displayCategories(p) }}</td>
+                                        <td class="py-2">${{ p.price | number }}</td>
+                                        <td class="py-2">
+                                            <button class="px-2 py-1 rounded border mr-1" (click)="startEdit(p)">
+                                                Editar
+                                            </button>
+                                            <button class="px-2 py-1 rounded border text-red-700" (click)="remove(p)">
+                                                Borrar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
+                    </section>
 
+                    <!-- FORM -->
+                    <section class="md:col-span-5">
+                        <div class="rounded-xl border bg-white p-4">
+                            <h2 class="font-medium mb-3">
+                                {{ editingId() ? 'Editar producto' : 'Nuevo producto' }}
+                            </h2>
 
+                            <form [formGroup]="form" (ngSubmit)="submit()" class="grid gap-3">
+                                <div>
+                                    <label class="block text-xs text-neutral-600 mb-1">Código</label>
+                                    <input formControlName="code" class="w-full border rounded px-3 py-2" />
+                                </div>
 
-                        <!-- BOTONES -->
-                        <div class="flex gap-2 mt-2">
-                            <button class="px-4 py-2 rounded bg-[#2f3f56] text-white" type="submit"
-                                [disabled]="form.invalid">
-                                {{ editingId() ? 'Guardar cambios' : 'Crear' }}
-                            </button>
-                            <button class="px-4 py-2 rounded border" type="button"
-                                (click)="startCreate()">Limpiar</button>
+                                <div>
+                                    <label class="block text-xs text-neutral-600 mb-1">Nombre</label>
+                                    <input formControlName="name" class="w-full border rounded px-3 py-2" />
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs text-neutral-600 mb-1">Precio</label>
+                                    <input type="number" formControlName="price"
+                                        class="w-full border rounded px-3 py-2" />
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs text-neutral-600 mb-1">Imagen (URL)</label>
+                                    <input formControlName="img_url" class="w-full border rounded px-3 py-2" />
+                                </div>
+
+                                <!-- CHIPS SELECCIONADAS -->
+                                <div class="selected-chips" *ngIf="(form.get('categoriesIds')?.value?.length || 0) > 0">
+                                    <span class="chip" *ngFor="let id of form.get('categoriesIds')?.value">
+                                        {{ getCategoryName(id) }}
+                                        <button type="button" class="chip-x" (click)="unselectCategory(id)"
+                                            aria-label="Quitar">
+                                            ×
+                                        </button>
+                                    </span>
+                                    <button type="button" class="chip clear" (click)="clearCategories()"
+                                        aria-label="Limpiar categorías">
+                                        Limpiar
+                                    </button>
+                                </div>
+
+                                <!-- SELECT MULTIPLE -->
+                                <mat-form-field appearance="fill" class="w-full">
+                                    <mat-label>Selecciona categorías</mat-label>
+                                    <mat-select formControlName="categoriesIds" multiple [panelClass]="'cat-panel'">
+                                        <mat-select-trigger> </mat-select-trigger>
+
+                                        <mat-option *ngFor="let c of categories()" [value]="c._id">
+                                            {{ c.name }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+
+                                <!-- CREAR: Stock inicial -->
+                                <div *ngIf="!editingId()">
+                                    <label class="block text-xs text-neutral-600 mb-1">Stock inicial</label>
+                                    <input type="number" formControlName="initialQuantity" min="0"
+                                        class="w-full border rounded px-3 py-2" />
+                                </div>
+
+                                <!-- EDITAR: Stock actual -->
+                                <div *ngIf="editingId()" class="flex items-center gap-2">
+                                    <div>
+                                        <label class="block text-xs text-neutral-600 mb-1">Stock actual</label>
+                                        <input type="number" [formControl]="stockCtrl" min="0"
+                                            class="w-28 border rounded px-3 py-2" />
+                                    </div>
+                                    <div class="text-xs text-neutral-500">
+                                        Si cambias el valor y guardas, se actualizará el stock.
+                                    </div>
+                                </div>
+
+                                <!-- BOTONES -->
+                                <div class="flex gap-2 mt-2">
+                                    <button class="px-4 py-2 rounded bg-[#2f3f56] text-white" type="submit"
+                                        [disabled]="form.invalid">
+                                        {{ editingId() ? 'Guardar cambios' : 'Crear' }}
+                                    </button>
+                                    <button class="px-4 py-2 rounded border" type="button" (click)="startCreate()">
+                                        Limpiar
+                                    </button>
+                                </div>
+
+                                <button class="mt-1" mat-stroked-button type="button" (click)="openCategoriesDialog()">
+                                    Administrar categorías
+                                </button>
+                            </form>
                         </div>
-                        <button class="mt-1" mat-stroked-button type="button" (click)="openCategoriesDialog()">
-                            Administrar
-                            categorías </button>
-                    </form>
+                    </section>
                 </div>
             </section>
         </div>
-    </main>
+    </div>
 
     <app-footer class="mt-auto"></app-footer>
 </div>

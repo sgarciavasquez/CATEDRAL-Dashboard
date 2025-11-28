@@ -102,6 +102,7 @@ export class ProfilePage {
       next: (res) => {
         console.log('%c[Profile] reservas recibidas:', 'color:#16a34a', res);
         this.reservations = res ?? [];
+        this.loadMyRatings();
       },
       error: (e) => {
         console.error('[Profile] subscribe ERROR:', e);
@@ -114,6 +115,54 @@ export class ProfilePage {
       }
     });
   }
+
+  private loadMyRatings() {
+    if (!this.user) {
+      console.warn('[Profile] loadMyRatings() sin user');
+      return;
+    }
+
+    this.ratingSvc.getMyRatings().subscribe({
+      next: (resp) => {
+        const list = resp?.data ?? [];
+        console.log('%c[Profile] mis ratings:', 'color:#22c55e', list);
+
+        // Mapa productId -> value
+        const map = new Map<string, number>();
+        for (const r of list) {
+          const pid =
+            (r.product as any)?._id
+              ? (r.product as any)._id
+              : (r.product as any);
+          map.set(String(pid), r.value);
+        }
+
+        // Recorremos reservas e items y seteamos myRating
+        for (const res of this.reservations) {
+          (res as any).items?.forEach((it: any) => {
+            const pid =
+              it.productId ||
+              (it.product &&
+                ((it.product as any)._id || (it.product as any).id));
+
+            if (!pid) return;
+
+            const val = map.get(String(pid));
+            if (val) {
+              (it as any).myRating = val;
+            }
+          });
+        }
+
+        console.log('%c[Profile] reservas con myRating aplicado', 'color:#22c55e', this.reservations);
+        this.cd.markForCheck();
+      },
+      error: (err) => {
+        console.error('[Profile] error cargando mis ratings', err);
+      },
+    });
+  }
+
 
   // ========= CHAT =========
   private async inferAdminId(clienteId: string): Promise<string | null> {
@@ -289,45 +338,120 @@ export class ProfilePage {
   }
 
 
+
   onRated(reservation: Reservation, item: any, value: number) {
     const reservationId = (reservation as any)._id || (reservation as any).id;
-    const productId = item.productId ||
+    const productId =
+      item.productId ||
       (item.product && ((item.product as any)._id || (item.product as any).id));
 
-    console.log('%c[Profile] onRated()', 'color:#22c55e', {
+    const userId = this.user?._id ?? (this.user as any)?.id;
+
+    console.log('%c[Profile] onRated() RAW', 'color:#eab308', {
       reservationId,
       productId,
+      userId,
       value,
-      item,
+      rawItem: item,
     });
 
-    if (!reservationId || !productId) {
-      console.warn('[Profile] faltan ids para votar', { reservationId, productId });
-      alert('No se pudo identificar el producto o la reserva para guardar tu voto.');
+    if (!reservationId || !productId || !userId) {
+      console.warn('[Profile] faltan ids para votar', {
+        reservationId,
+        productId,
+        userId,
+      });
+      alert('No se pudo identificar producto / reserva / usuario para votar.');
       return;
     }
+
+    // entero entre 1 y 5
+    const safeValue = Math.min(5, Math.max(1, Math.round(Number(value) || 0)));
+
+    console.log('%c[Profile] onRated() SAFE', 'color:#facc15', { safeValue });
 
     this.ratingSvc
       .rate({
         product: String(productId),
         reservation: String(reservationId),
-        value,
+        value: safeValue,
       })
       .subscribe({
         next: (res) => {
           console.log('%c[Profile] rating guardado OK', 'color:#22c55e', res);
-          // reflejamos inmediatamente en UI
-          (item as any).myRating = value;
+          (item as any).myRating = safeValue;
+          (item as any).rating = safeValue; // opcional, por si usas rating también
         },
         error: (err) => {
-          console.error('%c[Profile] error guardando rating', 'color:#ef4444', err);
-          alert(
-            err?.error?.message ||
-            'No se pudo guardar tu puntuación. Intenta de nuevo más tarde.'
+          console.error(
+            '%c[Profile] error guardando rating',
+            'color:#ef4444',
+            err
           );
+          alert(err?.error?.message || 'No se pudo guardar tu puntuación');
         },
       });
   }
+
+
+
+  getRating(it: any): number {
+    const rating =
+      (it as any)?.myRating ??
+      (it as any)?.rating ??
+      0;
+
+    console.log('[profile] getRating:', {
+      name: it?.name,
+      rating,
+    });
+
+    return rating;
+  }
+
+  canRate(r: Reservation, it: any): boolean {
+    // Si la reserva no está completada, ni siquiera debería ser clickable
+    if (!this.canShowRating(r)) {
+      console.log('[Profile] canRate -> false (reserva no completada)', {
+        status: this.getReservationStatus(r),
+        itemName: it?.name,
+      });
+      return false;
+    }
+
+    const currentRating =
+      (it as any).myRating ??
+      (it as any).rating ??
+      0;
+
+    const alreadyRated = !!currentRating && currentRating > 0;
+    const can = !alreadyRated;
+
+    console.log('%c[Profile] canRate()', 'color:#0ea5e9', {
+      status: this.getReservationStatus(r),
+      currentRating,
+      alreadyRated,
+      can,
+      itemName: it?.name,
+    });
+
+    return can;
+  }
+
+
+  getReservationStatus(r: Reservation): string {
+    const raw = (r as any).status ?? '';
+    return raw.toString().toUpperCase();
+  }
+
+  canShowRating(r: Reservation): boolean {
+    const status = this.getReservationStatus(r);
+    return status === 'CONFIRMED' || status === 'COMPLETED';
+  }
+
+
+
+
 
 
 }

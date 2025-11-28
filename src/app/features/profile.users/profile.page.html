@@ -87,9 +87,11 @@
                     </div>
 
                     <!-- ⭐ Rating del perfume en esta reserva -->
-                    <app-star-rating class="mt-1" [value]="it.myRating || it.rating || 0" [showNumber]="false"
-                      (valueChange)="onRated(r, it, $event)">
-                    </app-star-rating>
+                    <ng-container *ngIf="canShowRating(r)">
+                      <app-star-rating class="mt-1" [value]="getRating(it)" [readOnly]="!canRate(r, it)"
+                        [showNumber]="false" (valueChange)="onRated(r, it, $event)">
+                      </app-star-rating>
+                    </ng-container>
 
                     <div class="text-sm font-medium">
                       ${{ it.price | number:'1.0-0' }}

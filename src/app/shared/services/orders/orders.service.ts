@@ -8,7 +8,7 @@ import {
 } from './models/orders.models';
 import { ReservationPreview } from '../../../chat/chat-context.service';
 
-type UpperStatus = 'PENDING'|'CONFIRMED'|'CANCELLED';
+type UpperStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED';
 
 // ---- NUEVO: tipo helper para respuestas paginadas ----
 interface ApiPage<T> {
@@ -64,11 +64,17 @@ export class OrdersService {
     return this.http.put<ApiReservation>(`${this.base}/${id}/cancel`, {}).pipe(map(toUiReservation));
   }
 
-   getPreviewByChat(chatId: string) {
+  getPreviewByChat(chatId: string) {
     return this.http
       .get<ReservationPreview | { data: ReservationPreview }>(`/api/reservations/by-chat/${chatId}`)
       .pipe(
         map((resp: any) => resp?.data ?? resp as ReservationPreview)
       );
   }
+
+  reopen(id: string): Observable<UiReservation> {
+  return this.http
+    .put<ApiReservation>(`${this.base}/${id}/reopen`, {})
+    .pipe(map(toUiReservation));
+}
 }

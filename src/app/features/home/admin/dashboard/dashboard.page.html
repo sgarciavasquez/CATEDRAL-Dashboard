@@ -3,50 +3,63 @@
 <div class="min-h-screen flex flex-col bg-[#f7f9fc]">
 
   <div class="container-7xl py-6">
-    <h1 class="text-2xl font-semibold text-[#2f3f56] mb-6">Dashboard de Pedidos</h1>
+    <div class="grid grid-cols-12 gap-6">
+      <!-- SIDEBAR -->
+      <aside class="col-span-12 md:col-span-3">
+        <app-admin-sidebar></app-admin-sidebar>
+      </aside>
 
-    <!-- KPIs -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <!-- CONTENIDO PRINCIPAL -->
+      <section class="col-span-12 md:col-span-9">
+        <h1 class="text-2xl font-semibold text-[#2f3f56] mb-6">
+          Dashboard de Pedidos
+        </h1>
 
-      <div class="rounded-xl bg-white p-4 ring-1 ring-[#e8ecf4]">
-        <p class="text-sm text-neutral-500">Total pedidos</p>
-        <p class="text-2xl font-bold">{{ stats.total }}</p>
-      </div>
+        <!-- KPIs -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="rounded-xl bg-white p-4 ring-1 ring-[#e8ecf4]">
+            <p class="text-sm text-neutral-500">Total pedidos</p>
+            <p class="text-2xl font-bold">{{ stats.total }}</p>
+          </div>
 
-      <div class="rounded-xl bg-white p-4 ring-1 ring-[#e8ecf4]">
-        <p class="text-sm text-neutral-500">Pendientes</p>
-        <p class="text-2xl font-bold text-amber-600">{{ stats.pending }}</p>
-      </div>
+          <div class="rounded-xl bg-white p-4 ring-1 ring-[#e8ecf4]">
+            <p class="text-sm text-neutral-500">Pendientes</p>
+            <p class="text-2xl font-bold text-amber-600">{{ stats.pending }}</p>
+          </div>
 
-      <div class="rounded-xl bg-white p-4 ring-1 ring-[#e8ecf4]">
-        <p class="text-sm text-neutral-500">Completados</p>
-        <p class="text-2xl font-bold text-green-600">{{ stats.completed }}</p>
-      </div>
+          <div class="rounded-xl bg-white p-4 ring-1 ring-[#e8ecf4]">
+            <p class="text-sm text-neutral-500">Completados</p>
+            <p class="text-2xl font-bold text-green-600">
+              {{ stats.completed }}
+            </p>
+          </div>
 
-      <div class="rounded-xl bg-white p-4 ring-1 ring-[#e8ecf4]">
-        <p class="text-sm text-neutral-500">Cancelados</p>
-        <p class="text-2xl font-bold text-red-600">{{ stats.cancelled }}</p>
-      </div>
+          <div class="rounded-xl bg-white p-4 ring-1 ring-[#e8ecf4]">
+            <p class="text-sm text-neutral-500">Cancelados</p>
+            <p class="text-2xl font-bold text-red-600">
+              {{ stats.cancelled }}
+            </p>
+          </div>
+        </div>
 
+        <!-- GRÁFICOS -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="rounded-xl bg-white p-4 ring-1 ring-[#e8ecf4]">
+            <h2 class="text-lg font-semibold text-[#2f3f56] mb-4">
+              Distribución de Estados
+            </h2>
+            <app-status-donut [stats]="stats"></app-status-donut>
+          </div>
+
+          <div class="rounded-xl bg-white p-4 ring-1 ring-[#e8ecf4]">
+            <h2 class="text-lg font-semibold text-[#2f3f56] mb-4">
+              Pedidos por mes
+            </h2>
+            <app-monthly-bar-chart [monthly]="monthly"></app-monthly-bar-chart>
+          </div>
+        </div>
+      </section>
     </div>
-
-    <!-- GRÁFICOS -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-      <!-- Donut -->
-      <div class="rounded-xl bg-white p-4 ring-1 ring-[#e8ecf4]">
-        <h2 class="text-lg font-semibold text-[#2f3f56] mb-4">Distribución de Estados</h2>
-        <app-status-donut [stats]="stats"></app-status-donut>
-      </div>
-
-      <!-- Barras mensuales -->
-      <div class="rounded-xl bg-white p-4 ring-1 ring-[#e8ecf4]">
-        <h2 class="text-lg font-semibold text-[#2f3f56] mb-4">Pedidos por mes</h2>
-        <app-monthly-bar-chart [monthly]="monthly"></app-monthly-bar-chart>
-      </div>
-
-    </div>
-
   </div>
 
   <app-footer class="mt-auto"></app-footer>
