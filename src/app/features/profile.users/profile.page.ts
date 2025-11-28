@@ -1,5 +1,5 @@
 import { Component, inject, ChangeDetectorRef } from '@angular/core';
-import { CommonModule, NgIf, NgFor } from '@angular/common';
+import { CommonModule, NgIf, NgFor, NgForOf } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../shared/services/authservice/auth';
@@ -18,7 +18,17 @@ import { RatingService } from '../../shared/services/rating/rating.service';
 @Component({
   selector: 'app-profile-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, NgIf, NgFor, FooterComponent, HeaderComponent, MatIconModule, StarRatingComponent,],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    NgIf,
+    NgFor,
+    NgForOf,
+    FooterComponent,
+    HeaderComponent,
+    MatIconModule,
+    StarRatingComponent,
+  ],
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.css'],
 })
@@ -41,6 +51,16 @@ export class ProfilePage {
   user: ApiUser | null = null;
   reservations: Reservation[] = [];
 
+  /** ver más / ver menos reservas */
+  showAllReservations = false;
+
+  /** reservas que se muestran en la UI */
+  get visibleReservations(): Reservation[] {
+    return this.showAllReservations
+      ? this.reservations
+      : this.reservations.slice(0, 3);
+  }
+
   form = this.fb.group({
     name: ['', Validators.required],
     email: [{ value: '', disabled: true }, [Validators.required, Validators.email]],
@@ -52,68 +72,85 @@ export class ProfilePage {
     this.load();
   }
 
+  /** scroll desde el menú de la izquierda */
+  scrollTo(sectionId: 'datos' | 'reservas' | 'eliminar') {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  /** toggle ver más / ver menos */
+  toggleShowReservations() {
+    this.showAllReservations = !this.showAllReservations;
+  }
+
   private load() {
     console.log('%c[Profile] load() -> start', 'color:#2563eb');
     this.loading = true;
     this.error = '';
     this.okMsg = '';
 
-    this.userService.me().pipe(
-      tap((u: ApiUser) => {
-        console.log('%c[Profile] me() OK:', 'color:#16a34a', u);
-        this.user = u;
+    this.userService
+      .me()
+      .pipe(
+        tap((u: ApiUser) => {
+          console.log('%c[Profile] me() OK:', 'color:#16a34a', u);
+          this.user = u;
 
-        const emailCtrl = this.form.get('email')!;
-        const wasDisabled = emailCtrl.disabled;
-        if (wasDisabled) emailCtrl.enable({ emitEvent: false });
+          const emailCtrl = this.form.get('email')!;
+          const wasDisabled = emailCtrl.disabled;
+          if (wasDisabled) emailCtrl.enable({ emitEvent: false });
 
-        this.form.patchValue(
-          { name: u?.name ?? '', email: u?.email ?? '', phone: u?.phone ?? '' },
-          { emitEvent: false }
-        );
+          this.form.patchValue(
+            { name: u?.name ?? '', email: u?.email ?? '', phone: u?.phone ?? '' },
+            { emitEvent: false }
+          );
 
-        if (wasDisabled) emailCtrl.disable({ emitEvent: false });
-        this.cd.markForCheck();
-      }),
-      switchMap((u: ApiUser) => {
-        const id = u?._id ?? (u as any)?.id;
-        console.log('%c[Profile] switchMap -> userId:', 'color:#2563eb', id);
-        if (!id) {
-          console.warn('[Profile] NO userId, corto la carga de reservas');
-          return of<Reservation[]>([]);
-        }
-        console.log('%c[Profile] llamando listByUser...', 'color:#2563eb');
-        return this.reservationService.listByUser(id).pipe(
-          catchError((e) => {
-            console.error('[Profile] listByUser ERROR:', e);
+          if (wasDisabled) emailCtrl.disable({ emitEvent: false });
+          this.cd.markForCheck();
+        }),
+        switchMap((u: ApiUser) => {
+          const id = u?._id ?? (u as any)?.id;
+          console.log('%c[Profile] switchMap -> userId:', 'color:#2563eb', id);
+          if (!id) {
+            console.warn('[Profile] NO userId, corto la carga de reservas');
             return of<Reservation[]>([]);
-          })
-        );
-      }),
-      catchError(err => {
-        console.error('[Profile] me() ERROR:', err);
-        this.error = err?.status === 401
-          ? 'Inicia sesión para ver tu perfil.'
-          : (err?.error?.message ?? 'No se pudo cargar perfil');
-        this.loading = false;
-        return of<Reservation[]>([]);
-      })
-    ).subscribe({
-      next: (res) => {
-        console.log('%c[Profile] reservas recibidas:', 'color:#16a34a', res);
-        this.reservations = res ?? [];
-        this.loadMyRatings();
-      },
-      error: (e) => {
-        console.error('[Profile] subscribe ERROR:', e);
-        this.loading = false;
-      },
-      complete: () => {
-        console.log('%c[Profile] load() -> complete', 'color:#2563eb');
-        this.loading = false;
-        this.cd.markForCheck();
-      }
-    });
+          }
+          console.log('%c[Profile] llamando listByUser...', 'color:#2563eb');
+          return this.reservationService.listByUser(id).pipe(
+            catchError((e) => {
+              console.error('[Profile] listByUser ERROR:', e);
+              return of<Reservation[]>([]);
+            })
+          );
+        }),
+        catchError((err) => {
+          console.error('[Profile] me() ERROR:', err);
+          this.error =
+            err?.status === 401
+              ? 'Inicia sesión para ver tu perfil.'
+              : err?.error?.message ?? 'No se pudo cargar perfil';
+          this.loading = false;
+          return of<Reservation[]>([]);
+        })
+      )
+      .subscribe({
+        next: (res) => {
+          console.log('%c[Profile] reservas recibidas:', 'color:#16a34a', res);
+          this.reservations = res ?? [];
+          this.loadMyRatings();
+        },
+        error: (e) => {
+          console.error('[Profile] subscribe ERROR:', e);
+          this.loading = false;
+        },
+        complete: () => {
+          console.log('%c[Profile] load() -> complete', 'color:#2563eb');
+          this.loading = false;
+          this.cd.markForCheck();
+        },
+      });
   }
 
   private loadMyRatings() {
@@ -127,17 +164,13 @@ export class ProfilePage {
         const list = resp?.data ?? [];
         console.log('%c[Profile] mis ratings:', 'color:#22c55e', list);
 
-        // Mapa productId -> value
         const map = new Map<string, number>();
         for (const r of list) {
           const pid =
-            (r.product as any)?._id
-              ? (r.product as any)._id
-              : (r.product as any);
+            (r.product as any)?._id ? (r.product as any)._id : (r.product as any);
           map.set(String(pid), r.value);
         }
 
-        // Recorremos reservas e items y seteamos myRating
         for (const res of this.reservations) {
           (res as any).items?.forEach((it: any) => {
             const pid =
@@ -154,7 +187,11 @@ export class ProfilePage {
           });
         }
 
-        console.log('%c[Profile] reservas con myRating aplicado', 'color:#22c55e', this.reservations);
+        console.log(
+          '%c[Profile] reservas con myRating aplicado',
+          'color:#22c55e',
+          this.reservations
+        );
         this.cd.markForCheck();
       },
       error: (err) => {
@@ -163,7 +200,6 @@ export class ProfilePage {
     });
   }
 
-
   // ========= CHAT =========
   private async inferAdminId(clienteId: string): Promise<string | null> {
     console.log('%c[Chat] inferAdminId() -> start', 'color:#0ea5e9', { clienteId });
@@ -171,28 +207,23 @@ export class ProfilePage {
     try {
       const res = await firstValueFrom(this.chatApi.listMine('cliente'));
       const chats = res?.data ?? [];
-      console.log('%c[Chat] listMine(cliente) OK', 'color:#22c55e', { count: chats.length, chats });
+      console.log('%c[Chat] listMine(cliente) OK', 'color:#22c55e', {
+        count: chats.length,
+        chats,
+      });
 
       for (const c of chats) {
-        // c.clienteId y c.adminId ahora pueden ser string u objeto {_id, name}
-        const cId = typeof c.clienteId === 'string'
-          ? c.clienteId
-          : c.clienteId?._id;
+        const cId =
+          typeof c.clienteId === 'string'
+            ? c.clienteId
+            : c.clienteId?._id;
 
-        const aId = typeof c.adminId === 'string'
-          ? c.adminId
-          : c.adminId?._id;
+        const aId =
+          typeof c.adminId === 'string'
+            ? c.adminId
+            : c.adminId?._id;
 
         const match = cId === clienteId && !!aId;
-
-        console.log('[Chat] revisar chat', {
-          chatId: c?._id,
-          rawClienteId: c?.clienteId,
-          rawAdminId: c?.adminId,
-          cId,
-          aId,
-          match,
-        });
 
         if (match) {
           console.log('%c[Chat] adminId inferido', 'color:#22c55e', aId);
@@ -200,15 +231,15 @@ export class ProfilePage {
         }
       }
 
-      console.warn('[Chat] No se pudo inferir adminId (no hay chats previos con admin).');
+      console.warn(
+        '[Chat] No se pudo inferir adminId (no hay chats previos con admin).'
+      );
       return null;
     } catch (err) {
       console.error('[Chat] listMine ERROR', err);
       return null;
     }
   }
-
-
 
   async openChat(r: Reservation) {
     console.log('%c[Chat] openChat() -> click', 'color:#0ea5e9', r);
@@ -221,34 +252,30 @@ export class ProfilePage {
       return;
     }
 
-    // ---- 1) status / closed ----
     const statusRaw = (r.status || '').toString().toUpperCase();
-    const closed = statusRaw === 'CONFIRMED' || statusRaw === 'CANCELLED';
-    console.log('[Chat] status reserva:', statusRaw, 'closed:', closed);
-
-    // ---- 2) preview de la reserva ----
     const reservationId = (r as any)._id ?? (r as any).id;
-    const preview = {
+
+    const preview: any = {
       reservationId,
       createdAt: (r as any).createdAt,
       total: (r as any).total,
-      status: (r as any).status?.toString().toUpperCase() ?? 'PENDING',   // <--- NUEVO
-      items: (r as any).items?.map((it: any) => ({
-        name: it.name,
-        qty: it.qty ?? it.quantity ?? 1,
-        price: it.price,
-        imageUrl: it.imageUrl,
-      })) ?? undefined,
+      status: (r as any).status?.toString().toUpperCase() ?? 'PENDING',
+      items:
+        (r as any).items?.map((it: any) => ({
+          name: it.name,
+          qty: it.qty ?? it.quantity ?? 1,
+          price: it.price,
+          imageUrl: it.imageUrl,
+        })) ?? undefined,
     };
     console.log('[Chat] preview generado:', preview);
 
-
-    // ---- 3) Detectar admin con el que ya habló este cliente ----
     const adminId = await this.inferAdminId(clienteId);
     console.log('[Chat] adminId inferido:', adminId);
 
     if (!adminId) {
-      this.error = 'No pude detectar con qué administrador chatear. Pídele al admin que te envíe un primer mensaje o definan un admin por defecto.';
+      this.error =
+        'No pude detectar con qué administrador chatear. Pídele al admin que te envíe un primer mensaje o definan un admin por defecto.';
       console.warn('[Chat] Abortar openChat: adminId null.');
       return;
     }
@@ -267,35 +294,38 @@ export class ProfilePage {
         return;
       }
 
-      // 4) Guardar contexto local (para cuando vienes desde el perfil)
-      this.chatCtx.set(chat._id, preview);
-      console.log('%c[Chat] ChatContext actualizado', 'color:#22c55e', { chatId: chat._id, preview });
+      this.chatCtx.set(chat._id, preview as any);
+      console.log('%c[Chat] ChatContext actualizado', 'color:#22c55e', {
+        chatId: chat._id,
+        preview,
+      });
 
-      // 5) Actualizar meta en el CHAT del backend (para cuando entres desde la lista de chats)
       this.chatApi
         .updateMeta(chat._id, {
           reservationId,
           reservationStatus: statusRaw,
           reservationPreview: preview,
-        })
+        } as any)
         .subscribe({
           next: (m) => console.log('%c[Chat] meta actualizada en back', 'color:#22c55e', m),
           error: (e) => console.error('[Chat] updateMeta ERROR', e),
         });
 
-      // 6) Navegar al chat (pasando también el preview en el state por si acaso)
       console.log('%c[Chat] Navegando a /chat/' + chat._id, 'color:#2563eb');
-      this.router.navigate(['/chat', chat._id], { state: { reservationPreview: preview } });
-
+      this.router.navigate(['/chat', chat._id], {
+        state: { reservationPreview: preview },
+      });
     } catch (e: any) {
       console.error('%c[Chat] createOrGet ERROR', 'color:#ef4444', e);
-      this.error = e?.error?.message ?? 'No se pudo abrir el chat. Intenta de nuevo.';
+      this.error =
+        e?.error?.message ?? 'No se pudo abrir el chat. Intenta de nuevo.';
     }
   }
 
+  // ========= HELPERS VARIOS =========
 
-
-  trackReservation = (_: number, r: Reservation) => (r as any)._id || (r as any).id;
+  trackReservation = (_: number, r: Reservation) =>
+    (r as any)._id || (r as any).id;
 
   getCover(r: Reservation): string {
     return r?.items?.[0]?.imageUrl || 'assets/p1.png';
@@ -303,8 +333,13 @@ export class ProfilePage {
 
   save() {
     if (!this.user) return;
-    if (this.form.invalid) { this.error = 'Revisa los campos'; return; }
-    this.saving = true; this.error = ''; this.okMsg = '';
+    if (this.form.invalid) {
+      this.error = 'Revisa los campos';
+      return;
+    }
+    this.saving = true;
+    this.error = '';
+    this.okMsg = '';
 
     const payload = {
       name: this.form.get('name')!.value ?? '',
@@ -315,8 +350,17 @@ export class ProfilePage {
     console.log('%c[Profile] update user:', 'color:#2563eb', id, payload);
 
     this.userService.update(id, payload).subscribe({
-      next: (u) => { console.log('[Profile] update OK', u); this.user = u; this.okMsg = 'Datos actualizados'; this.saving = false; },
-      error: (e) => { console.error('[Profile] update ERROR', e); this.error = e?.error?.message ?? 'Error al actualizar'; this.saving = false; }
+      next: (u) => {
+        console.log('[Profile] update OK', u);
+        this.user = u;
+        this.okMsg = 'Datos actualizados';
+        this.saving = false;
+      },
+      error: (e) => {
+        console.error('[Profile] update ERROR', e);
+        this.error = e?.error?.message ?? 'Error al actualizar';
+        this.saving = false;
+      },
     });
   }
 
@@ -327,8 +371,15 @@ export class ProfilePage {
     console.log('%c[Profile] delete user:', 'color:#dc2626', id);
 
     this.userService.delete(id).subscribe({
-      next: () => { console.log('[Profile] delete OK'); this.auth.logout(); this.router.navigateByUrl('/'); },
-      error: (e) => { console.error('[Profile] delete ERROR', e); this.error = e?.error?.message ?? 'Error al eliminar cuenta'; }
+      next: () => {
+        console.log('[Profile] delete OK');
+        this.auth.logout();
+        this.router.navigateByUrl('/');
+      },
+      error: (e) => {
+        console.error('[Profile] delete ERROR', e);
+        this.error = e?.error?.message ?? 'Error al eliminar cuenta';
+      },
     });
   }
 
@@ -336,8 +387,6 @@ export class ProfilePage {
     if (!d) return '';
     return new Date(d).toLocaleDateString();
   }
-
-
 
   onRated(reservation: Reservation, item: any, value: number) {
     const reservationId = (reservation as any)._id || (reservation as any).id;
@@ -365,7 +414,6 @@ export class ProfilePage {
       return;
     }
 
-    // entero entre 1 y 5
     const safeValue = Math.min(5, Math.max(1, Math.round(Number(value) || 0)));
 
     console.log('%c[Profile] onRated() SAFE', 'color:#facc15', { safeValue });
@@ -380,64 +428,19 @@ export class ProfilePage {
         next: (res) => {
           console.log('%c[Profile] rating guardado OK', 'color:#22c55e', res);
           (item as any).myRating = safeValue;
-          (item as any).rating = safeValue; // opcional, por si usas rating también
+          (item as any).rating = safeValue;
         },
         error: (err) => {
-          console.error(
-            '%c[Profile] error guardando rating',
-            'color:#ef4444',
-            err
-          );
+          console.error('%c[Profile] error guardando rating', 'color:#ef4444', err);
           alert(err?.error?.message || 'No se pudo guardar tu puntuación');
         },
       });
   }
 
-
-
   getRating(it: any): number {
-    const rating =
-      (it as any)?.myRating ??
-      (it as any)?.rating ??
-      0;
-
-    console.log('[profile] getRating:', {
-      name: it?.name,
-      rating,
-    });
-
+    const rating = (it as any)?.myRating ?? (it as any)?.rating ?? 0;
     return rating;
   }
-
-  canRate(r: Reservation, it: any): boolean {
-    // Si la reserva no está completada, ni siquiera debería ser clickable
-    if (!this.canShowRating(r)) {
-      console.log('[Profile] canRate -> false (reserva no completada)', {
-        status: this.getReservationStatus(r),
-        itemName: it?.name,
-      });
-      return false;
-    }
-
-    const currentRating =
-      (it as any).myRating ??
-      (it as any).rating ??
-      0;
-
-    const alreadyRated = !!currentRating && currentRating > 0;
-    const can = !alreadyRated;
-
-    console.log('%c[Profile] canRate()', 'color:#0ea5e9', {
-      status: this.getReservationStatus(r),
-      currentRating,
-      alreadyRated,
-      can,
-      itemName: it?.name,
-    });
-
-    return can;
-  }
-
 
   getReservationStatus(r: Reservation): string {
     const raw = (r as any).status ?? '';
@@ -449,9 +452,13 @@ export class ProfilePage {
     return status === 'CONFIRMED' || status === 'COMPLETED';
   }
 
+  canRate(r: Reservation, it: any): boolean {
+    if (!this.canShowRating(r)) return false;
 
+    const currentRating =
+      (it as any).myRating ?? (it as any).rating ?? 0;
 
-
-
-
+    const alreadyRated = !!currentRating && currentRating > 0;
+    return !alreadyRated;
+  }
 }

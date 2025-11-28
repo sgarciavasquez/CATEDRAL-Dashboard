@@ -10,7 +10,7 @@ export interface ApiCategory {
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
   private http = inject(HttpClient);
-  private base = '/api/categories'; // ajusta si corresponde
+  private base = '/api/categories'; 
 
   list(): Observable<ApiCategory[]> {
     return this.http.get<ApiCategory[]>(this.base);

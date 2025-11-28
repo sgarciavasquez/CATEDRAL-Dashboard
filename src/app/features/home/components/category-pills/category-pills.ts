@@ -1,8 +1,10 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { UiProduct } from '../../../../shared/services/productservice/product.ui';
 
-type CatKey = 'mujer-dis' | 'hombre-dis' | 'nicho';
+type CatKey = '' | string;
+
 interface Cat { key: CatKey; label: string; img: string; }
 
 @Component({
@@ -14,6 +16,9 @@ interface Cat { key: CatKey; label: string; img: string; }
 })
 export class CategoryPillsComponent {
   private router = inject(Router);
+  private tagsOf(p: UiProduct): string[] {
+  return Array.isArray(p.categoryNames) ? p.categoryNames : [];
+}
 
   cats: Cat[] = [
     { key: 'mujer-dis',  label: 'Diseñador Mujer',  img: 'assets/p1.png' },

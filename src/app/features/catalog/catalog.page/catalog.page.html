@@ -5,18 +5,17 @@
   <aside class="col-span-12 md:col-span-3">
     <div class="bg-white rounded-xl shadow ring-1 ring-[#e8ecf4] overflow-hidden">
       <div class="px-4 py-3 bg-[#2f3f56] text-white font-semibold text-sm">Categorías</div>
-      <nav class="p-2 flex flex-col text-sm">
 
+      <nav class="p-2 flex flex-col text-sm">
         <!-- Botón para ver todas -->
         <a [routerLink]="['/catalogo']" class="px-4 py-2 rounded hover:bg-stone-100"
           [class.bg-[#e9eef8]]="!selectedCategory">
           Todas
         </a>
 
-        <!-- Lista dinámica de categorías desde la API -->
+        <!-- Categorías dinámicas -->
         <a *ngFor="let c of categories" [routerLink]="['/catalogo']" [queryParams]="{ cat: c.name }"
-          class="px-4 py-2 rounded hover:bg-stone-100 capitalize"
-          [class.bg-[#e9eef8]]="selectedCategory === c.name.toLowerCase()">
+          class="px-4 py-2 rounded hover:bg-stone-100 capitalize" [class.bg-[#e9eef8]]="selectedCategory === c.slug">
           {{ c.name }}
         </a>
       </nav>
@@ -27,13 +26,26 @@
   <section class="col-span-12 md:col-span-9">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-lg md:text-xl font-semibold">{{ title }}</h2>
-      <div class="text-xs text-neutral-500">Ordenar por: <span class="underline">Más vendidos</span></div>
+      <div class="text-xs text-neutral-500">
+        Ordenar por: <span class="underline">Más vendidos</span>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <label class="sr-only" for="catalogSearch">Buscar perfumes</label>
+      <div class="relative">
+        <input id="catalogSearch" type="search" [value]="searchTerm" (input)="onSearch($any($event.target).value)"
+          placeholder="Buscar por nombre o código…" class="w-full rounded-full border border-slate-200 px-4 py-2 text-sm
+               focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-300" />
+      </div>
     </div>
 
     <div *ngIf="loading" class="text-sm text-neutral-500">Cargando…</div>
 
     <ng-container *ngIf="!loading">
-      <div *ngIf="items.length === 0" class="text-sm text-neutral-500">No hay productos para esta categoría.</div>
+      <div *ngIf="items.length === 0" class="text-sm text-neutral-500">
+        No hay productos para esta categoría.
+      </div>
       <div class="grid gap-4 md:gap-6 md:grid-cols-2">
         <app-product-card *ngFor="let p of items" [product]="p"></app-product-card>
       </div>

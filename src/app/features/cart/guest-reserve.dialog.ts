@@ -3,8 +3,6 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 
 export interface GuestReserveData {
@@ -21,15 +19,15 @@ export interface GuestReserveData {
     CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
     MatButtonModule,
   ],
   templateUrl: './guest-reserve.dialog.html',
 })
 export class GuestReserveDialogComponent {
   private fb = inject(FormBuilder);
-  private ref = inject(MatDialogRef<GuestReserveDialogComponent, GuestReserveData>);
+  private ref = inject(
+    MatDialogRef<GuestReserveDialogComponent, GuestReserveData>
+  );
 
   form = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],

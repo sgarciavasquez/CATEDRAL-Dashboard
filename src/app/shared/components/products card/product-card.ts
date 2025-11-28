@@ -27,14 +27,19 @@ export class ProductCardComponent {
       name: `${p.code} — ${p.name}`,
       price: p.price,
       imageUrl: p.imageUrl,
-      inStock: p.inStock,           
-      rating: p.rating ?? 4.7,      
+      inStock: p.inStock,
+      rating: p.rating ?? 4.7,
     } as Product;
   }
 
-   onAddToCart(ev?: Event) {
+  onAddToCart(ev?: Event) {
     ev?.stopPropagation();
     if (!this.product) return;
+
+    if (!this.product.inStock || this.product.inStock <= 0) {
+      return;
+    }
+
     this.cart.add(this.toCartItem(this.product), 1);
   }
 }

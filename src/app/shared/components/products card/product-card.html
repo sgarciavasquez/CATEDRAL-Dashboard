@@ -60,15 +60,21 @@
   <!-- FOOTER de acciones (compacto) -->
   <div class="mt-auto">
     <div class="flex gap-2">
-      <button type="button" (click)="onAddToCart($event)" class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-900 text-white
-               px-3 py-1.5 text-[13px] font-medium shadow hover:brightness-110 active:scale-[.98] transition w-full">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="-ml-0.5">
+      <button type="button" (click)="onAddToCart($event)" [disabled]="product.inStock <= 0" class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-900 text-white
+         px-3 py-1.5 text-[13px] font-medium shadow w-full
+         transition
+         hover:brightness-110 active:scale-[.98]
+         disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:active:scale-100">
+
+        <svg *ngIf="product.inStock > 0" width="16" height="16" viewBox="0 0 24 24" fill="none" class="-ml-0.5">
           <path d="M3 6h2l2 10h10l2-7H7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
           <circle cx="10" cy="20" r="1.4" fill="currentColor" />
           <circle cx="17" cy="20" r="1.4" fill="currentColor" />
         </svg>
-        Agregar
+
+        {{ product.inStock > 0 ? 'Agregar' : 'Sin stock' }}
       </button>
+
 
       <a [routerLink]="['/producto', product.id]" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300
                px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 active:scale-[.98]

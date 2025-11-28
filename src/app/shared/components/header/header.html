@@ -36,7 +36,7 @@
       <!-- Buscador + iconos (derecha) -->
       <div class="flex items-center gap-3 justify-self-end">
         <!-- Buscador -->
-        <div class="relative w-[180px] sm:w-[220px] md:w-[280px]">
+        <!-- <div class="relative w-[180px] sm:w-[220px] md:w-[280px]">
           <input
             class="w-full rounded-full bg-white text-stone-900 pl-4 pr-9 py-2 placeholder:text-stone-400 outline-none"
             placeholder="Buscar perfumes..."
@@ -46,7 +46,7 @@
             class="!absolute right-2 top-1/2 -translate-y-1/2 !text-stone-500 !text-[20px]"
             >search</mat-icon
           >
-        </div>
+        </div> -->
 
         <!-- Iconos -->
         <ng-container *ngIf="(user$ | async) as _; else guestDesktop">
@@ -261,7 +261,7 @@
       </div>
 
       <!-- fila 2: buscador full-width -->
-      <div class="relative w-full">
+      <!-- <div class="relative w-full">
         <input
           class="w-full rounded-full bg-white text-stone-900 pl-4 pr-9 py-2 placeholder:text-stone-400 outline-none"
           placeholder="Buscar perfumes..."
@@ -271,7 +271,7 @@
           class="!absolute right-2 top-1/2 -translate-y-1/2 !text-stone-500 !text-[20px]"
           >search</mat-icon
         >
-      </div>
+      </div> -->
     </div>
   </div>
 </header>

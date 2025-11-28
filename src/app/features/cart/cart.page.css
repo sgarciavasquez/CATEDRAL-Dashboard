@@ -1,0 +1,16 @@
+.snack-error .mdc-snackbar__surface {
+  background: #111827;
+  color: #f9fafb;
+  border-radius: 999px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  padding-inline: 20px;
+  max-width: 640px;
+}
+
+.snack-error .mdc-snackbar__label {
+  font-size: 13px;
+}
+
+.snack-error .mdc-button__label {
+  font-weight: 600;
+}
