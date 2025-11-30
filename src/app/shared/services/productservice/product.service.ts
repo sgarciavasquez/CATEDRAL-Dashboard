@@ -12,8 +12,8 @@ export interface SaveProductPayload {
   name: string;
   price: number;
   img_url?: string;
-  categories?: string[];       // IDs
-  initialQuantity?: number;    // SOLO al crear
+  categories?: string[];       
+  initialQuantity?: number;    
 }
 
 @Injectable({ providedIn: 'root' })
