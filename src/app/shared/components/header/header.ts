@@ -11,7 +11,7 @@ import { ChatStoreService } from '../../../chat/chat.store.service';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, NgIf, NgForOf , NgFor , CommonModule ,AsyncPipe, MatIconModule],
+  imports: [RouterLink, NgIf , CommonModule ,AsyncPipe, MatIconModule],
   templateUrl: './header.html',
   styleUrls: ['./header.css'],
 })
