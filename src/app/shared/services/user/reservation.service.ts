@@ -1,6 +1,8 @@
+// shared/services/user/reservation.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map, tap, catchError, of } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 export interface ReservationItem {
   productId: string;
@@ -11,6 +13,7 @@ export interface ReservationItem {
   rating?: number;
   myRating?: number;
 }
+
 export interface Reservation {
   _id?: string;
   userId: string;
@@ -64,14 +67,12 @@ export interface CreateGuestReservationPayload {
   }>;
 }
 
-
-
 type UpperStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED';
 
 @Injectable({ providedIn: 'root' })
 export class ReservationService {
   private http = inject(HttpClient);
-  private base = '/api';
+  private base = environment.apiUrl;
 
   listByUser(userId: string, status?: UpperStatus): Observable<Reservation[]> {
     console.log('%c[ReservationsSvc] listByUser()', 'color:#9333ea', { userId, status });
@@ -112,7 +113,6 @@ export class ReservationService {
         tap((res) => console.log('%c[ReservationsSvc] guest created:', 'color:#16a34a', res))
       );
   }
-
 
   private toReservation = (a: ApiReservation): Reservation => {
     const userObj = typeof a.user === 'object' ? a.user : undefined;
@@ -163,6 +163,4 @@ export class ReservationService {
     };
     return out;
   };
-
-
 }

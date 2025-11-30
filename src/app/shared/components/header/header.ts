@@ -1,7 +1,7 @@
 // header.ts
 import { Component, inject, computed, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { NgIf, AsyncPipe } from '@angular/common';
+import { NgIf, AsyncPipe, NgForOf, NgFor, CommonModule } from '@angular/common';
 import { AuthService } from '../../services/authservice/auth';
 import { CartService } from '../../services/cartservice/cart';
 import { map } from 'rxjs';
@@ -11,7 +11,7 @@ import { ChatStoreService } from '../../../chat/chat.store.service';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, NgIf, AsyncPipe, MatIconModule],
+  imports: [RouterLink, NgIf, NgForOf , NgFor , CommonModule ,AsyncPipe, MatIconModule],
   templateUrl: './header.html',
   styleUrls: ['./header.css'],
 })

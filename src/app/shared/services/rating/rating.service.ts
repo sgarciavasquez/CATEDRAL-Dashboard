@@ -1,7 +1,8 @@
-// rating.service.ts
+// shared/services/rating/rating.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 export interface RatePayload {
   product: string;
@@ -14,12 +15,10 @@ export interface MyRating {
   value: number;
 }
 
-
-
 @Injectable({ providedIn: 'root' })
 export class RatingService {
   private http = inject(HttpClient);
-  private base = '/api';
+  private base = environment.apiUrl;
 
   rate(payload: RatePayload) {
     console.log('%c[RatingSvc] rate() payload', 'color:#eab308', payload);
