@@ -9,11 +9,7 @@ export class MessagesApiService {
   private http = inject(HttpClient);
   private base = '/api';
 
-  /**
-   * Lista mensajes de un chat (paginación hacia arriba).
-   * Backend: GET /chats/:chatId/messages?before&limit
-   * Devuelve SOLO el array de mensajes.
-   */
+ 
   // shared/services/chat/messages.api.service.ts
   list(chatId: string, opts?: { limit?: number; before?: string }): Observable<ApiMessage[]> {
     const max = 100; // coincide con @Max(100) del back

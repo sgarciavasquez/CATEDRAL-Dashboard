@@ -74,17 +74,14 @@ export function getOtherParticipantName(chat: ApiChat, myId: string): string {
 
   console.log('[chat.types] getOtherParticipantName()', { chatId: chat._id, myId, cliente, admin });
 
-  // Caso 1: cliente viene populado y NO soy yo
   if (cliente && typeof cliente === 'object' && cliente._id && cliente._id !== myId) {
     return cliente.name || cliente.email || '';
   }
 
-  // Caso 2: admin viene populado y NO soy yo
   if (admin && typeof admin === 'object' && admin._id && admin._id !== myId) {
     return admin.name || admin.email || '';
   }
 
-  // Si todo falla, sin nombre “bonito”
   return '';
 }
 
@@ -117,7 +114,6 @@ export function mapApiChatToRow(
 }
 
 
-/** Mapeo ApiMessage -> Msg de UI (útil en tu Store) */
 export function mapApiMessageToMsg(m: ApiMessage): Msg {
   return {
     id: m._id,
@@ -141,7 +137,6 @@ type ApiChatUserRef =
 export interface ApiChat {
   _id: string;
 
-  // AHORA pueden ser string o el objeto populado con name/email
   clienteId: ApiChatUserRef;
   adminId: ApiChatUserRef;
 

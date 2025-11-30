@@ -15,8 +15,7 @@ interface LeadPayload {
 @Injectable({ providedIn: 'root' })
 export class LeadsService {
   private http = inject(HttpClient);
-  private base = `${environment.apiUrl}/leads`; // ajusta a tu endpoint real
-
+  private base = `${environment.apiUrl}/leads`; 
   create(payload: LeadPayload) {
     return this.http.post<{ ok: boolean; id?: string }>(this.base, payload);
   }

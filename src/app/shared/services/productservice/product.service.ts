@@ -4,20 +4,22 @@ import { Observable, of, switchMap, forkJoin, map } from 'rxjs';
 import { ApiProduct } from './product.api';
 import { UiProduct, toUiProduct } from './product.ui';
 import { CategoryService } from './category.service';
+import { environment } from '../../../../environments/environment';
 
 export interface SaveProductPayload {
   code: string;
   name: string;
   price: number;
   img_url?: string;
-  categories?: string[];       // IDs
-  initialQuantity?: number;    // SOLO al crear
+  categories?: string[];    
+  initialQuantity?: number;    
 }
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
   private http = inject(HttpClient);
-  private base = '/api/products';
+  // ahora apuntamos al backend en Render (o localhost en dev)
+  private base = `${environment.apiUrl}/products`;
   private categoryService = inject(CategoryService);
 
   // ====== Productos ======
@@ -32,44 +34,51 @@ export class ProductService {
   // UI list (enriquece con categorías y completa stock cuando falte)
   listUi(): Observable<UiProduct[]> {
     const norm = (s: string) =>
-      (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+      (s || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
 
     return this.list().pipe(
       switchMap((products: ApiProduct[] = []) => {
         if (!products.length) return of<UiProduct[]>([]);
 
         const idsNeedingDetail = products
-          .filter(p => {
+          .filter((p) => {
             const s: any = Array.isArray(p.stock) ? p.stock?.[0] : (p as any).stock;
             return !(s && (s.available != null || s.quantity != null || s.reserved != null));
           })
-          .map(p => p._id);
+          .map((p) => p._id);
 
         const details$ = idsNeedingDetail.length
-          ? forkJoin(idsNeedingDetail.map(id => this.get(id)))
+          ? forkJoin(idsNeedingDetail.map((id) => this.get(id)))
           : of<ApiProduct[]>([]);
 
         return details$.pipe(
-          switchMap(details => {
-            const byId = new Map(details.map(d => [d._id, d]));
+          switchMap((details) => {
+            const byId = new Map(details.map((d) => [d._id, d]));
 
             return this.categoryService.list().pipe(
-              map(categories => {
-                const catMap = new Map(categories.map(c => [c._id, c.name]));
+              map((categories) => {
+                const catMap = new Map(categories.map((c) => [c._id, c.name]));
 
-                return products.map(orig => {
+                return products.map((orig) => {
                   const enriched = byId.get(orig._id) ?? orig;
                   const base = toUiProduct(enriched);
 
                   const rawNames = (Array.isArray(enriched.categories) ? enriched.categories : [])
                     .map((c: any) => {
                       if (typeof c === 'string') return catMap.get(c) || '';
-                      if (c && typeof c === 'object') return c.name || catMap.get(c._id) || '';
+                      if (c && typeof c === 'object')
+                        return c.name || catMap.get(c._id) || '';
                       return '';
                     })
                     .filter(Boolean);
 
-                  const categoryNames = (rawNames.length ? rawNames : base.categoryNames || []).map(norm);
+                  const categoryNames = (rawNames.length ? rawNames : base.categoryNames || []).map(
+                    norm
+                  );
                   return { ...base, categoryNames } as UiProduct;
                 });
               })
@@ -81,12 +90,9 @@ export class ProductService {
   }
 
   setStockByStockId(stockId: string, quantity: number) {
-    return this.http.patch(`/api/stock/${stockId}`, { quantity });
+    return this.http.patch(`${environment.apiUrl}/stock/${stockId}`, { quantity });
   }
 
-
-
-  // ====== CRUD ======
   create(payload: SaveProductPayload): Observable<ApiProduct> {
     return this.http.post<ApiProduct>(this.base, payload);
   }

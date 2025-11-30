@@ -10,7 +10,6 @@ import { ReservationPreview } from '../../../chat/chat-context.service';
 
 type UpperStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED';
 
-// ---- NUEVO: tipo helper para respuestas paginadas ----
 interface ApiPage<T> {
   items: T[];
   total: number;
@@ -28,7 +27,6 @@ export class OrdersService {
     if (opts?.status) params = params.set('status', opts.status.toUpperCase());
 
     return this.http
-      // 👇 Puede venir array o paginado
       .get<ApiReservation[] | ApiPage<ApiReservation>>(this.base, { params })
       .pipe(
         map(resp => {
