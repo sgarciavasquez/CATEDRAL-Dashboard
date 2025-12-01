@@ -74,11 +74,28 @@ section > .rounded-xl {
   padding-bottom: 6px;
 }
 
-:root {
-  --safe-area-top: env(safe-area-inset-top, 0px);
-}
-
 .header-safe-top {
   /* 8px de padding + el espacio del notch/status bar si existe */
   padding-top: calc(var(--safe-area-top) + 8px);
 }
+
+:root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+}
+
+/* Empuja el header hacia abajo en móviles */
+.header-safe-top {
+  /* Fallback para Android (muchas veces env() es 0) */
+  padding-top: 40px;
+
+  /* Si el navegador respeta el safe-area, suma un extra */
+  padding-top: calc(var(--safe-area-top) + 20px);
+}
+
+/* En desktop no queremos tanto espacio arriba */
+@media (min-width: 768px) {
+  .header-safe-top {
+    padding-top: 8px;
+  }
+}
+

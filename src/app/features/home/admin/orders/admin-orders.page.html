@@ -60,37 +60,171 @@
         {{ error }}
       </div>
 
-      <!-- tabla -->
-      <div *ngIf="!loading && !error" class="rounded-2xl ring-1 ring-[#e8ecf4] overflow-hidden bg-white">
-        <div class="grid grid-cols-[80px_1fr_140px_120px_200px] items-center px-4 py-3 h-[92px]">
-          <div># Pedido</div>
-          <div>Cliente</div>
-          <div>Estado</div>
-          <div>Total</div>
-          <div class="text-right">Acciones</div>
-        </div>
+      <!-- ====== TABLA DESKTOP (md+) ====== -->
+      <div *ngIf="!loading && !error" class="hidden md:block">
+        <div class="rounded-2xl bg-white shadow-sm ring-1 ring-[#e0e6f0] overflow-hidden">
+          <!-- Header -->
+          <div class="grid grid-cols-[90px_1.8fr_1fr_1fr_1.4fr]
+             items-center px-5 py-3
+             bg-[#f7f9fc] text-[11px] font-semibold
+             uppercase tracking-wide text-neutral-500">
+            <div># Pedido</div>
+            <div>Cliente</div>
+            <div>Estado</div>
+            <div class="text-right">Total</div>
+            <div class="text-right">Acciones</div>
+          </div>
 
-        <!-- filas (paginadas) -->
-        <div *ngFor="let o of pagedItems" class="border-t border-[#eef2fa]">
-          <div class="grid grid-cols-[80px_1fr_140px_120px_200px] items-center px-4 py-3 h-[92px]">
-            <div class="flex items-center gap-2">
-              <button class="w-6 h-6 grid place-items-center rounded-full ring-1 ring-[#e8ecf4] bg-white text-xs"
-                (click)="toggle(o.id)" [attr.aria-expanded]="
-                  expanded()[o.id] ? 'true' : 'false'
-                " title="Ver detalle">
-                <span [style.transform]="
-                    expanded()[o.id] ? 'rotate(180deg)' : ''
-                  ">⌄</span>
-              </button>
-              <span class="text-xs text-neutral-600">#{{ o.code }}</span>
+          <!-- Filas -->
+          <div *ngFor="let o of pagedItems" class="border-t border-[#eef2fa]">
+            <div class="grid grid-cols-[90px_1.8fr_1fr_1fr_1.4fr]
+               items-center px-5 py-3
+               text-sm hover:bg-[#f9fbff] transition">
+              <!-- Código + toggle -->
+              <div class="flex items-center gap-2">
+                <button class="w-7 h-7 grid place-items-center rounded-full ring-1 ring-[#e1e6f4] bg-white text-xs"
+                  (click)="toggle(o.id)" [attr.aria-expanded]="expanded()[o.id] ? 'true' : 'false'" title="Ver detalle">
+                  <span class="transition-transform" [style.transform]="expanded()[o.id] ? 'rotate(180deg)' : ''">
+                    ⌄
+                  </span>
+                </button>
+                <span class="text-[11px] text-neutral-500">#{{ o.code }}</span>
+              </div>
+
+              <!-- Cliente -->
+              <div>
+                <div class="text-sm font-semibold text-[#2f3f56]">
+                  {{ o.customerName || o.customerId || '(sin datos)' }}
+                </div>
+                <div class="text-[11px] text-neutral-500">
+                  <ng-container *ngIf="o.customerEmail">
+                    {{ o.customerEmail }} ·
+                  </ng-container>
+                  <ng-container *ngIf="o.customerPhone">
+                    {{ o.customerPhone }} ·
+                  </ng-container>
+                  {{ o.createdAt | date : 'dd/MM/yyyy' }}
+                  <ng-container *ngIf="o.reserveDate">
+                    · Reserva: {{ o.reserveDate | date : 'dd/MM/yyyy' }}
+                  </ng-container>
+                </div>
+              </div>
+
+              <!-- Estado -->
+              <div>
+                <span class="inline-flex items-center text-[11px] px-2 py-0.5 rounded-full" [ngClass]="{
+              'bg-amber-100 text-amber-800': o.status === 'pending',
+              'bg-green-100 text-green-800': o.status === 'confirmed',
+              'bg-red-100 text-red-700': o.status === 'cancelled'
+            }">
+                  {{ o.status }}
+                </span>
+              </div>
+
+              <!-- Total -->
+              <div class="text-right font-semibold text-sm text-[#1f2933]">
+                {{ o.total | currency : 'CLP' : 'symbol-narrow' : '1.0-0' }}
+              </div>
+
+              <!-- Acciones -->
+              <!-- Acciones -->
+              <div class="flex justify-end">
+                <div class="flex flex-col items-end gap-1">
+                  <!-- Fila 1: acciones principales -->
+                  <div class="flex gap-2">
+                    <button class="px-3 py-1 text-[11px] rounded-full bg-red-500 text-white
+               hover:bg-red-600 disabled:opacity-40" [disabled]="o.status !== 'pending'" (click)="cancel(o)">
+                      Cancelar
+                    </button>
+
+                    <button class="px-3 py-1 text-[11px] rounded-full bg-[#2f3f56] text-white
+               hover:bg-[#223149] disabled:opacity-40" [disabled]="o.status !== 'pending'" (click)="complete(o)">
+                      Completar
+                    </button>
+                  </div>
+
+                  <!-- Fila 2: acciones secundarias -->
+                  <div class="flex gap-2">
+                    <button *ngIf="o.status === 'confirmed' || o.status === 'cancelled'" class="px-3 py-1 text-[11px] rounded-full border border-[#2f3f56]
+               text-[#2f3f56] hover:bg-[#f3f5f8]" (click)="reopen(o)">
+                      Re-abrir
+                    </button>
+
+                    <button *ngIf="o.chatId" type="button" class="px-3 py-1 text-[11px] rounded-full border border-[#dfe6f6]
+               text-[#2f3f56] hover:bg-[#f5f7fb]" (click)="goToChat(o.chatId)">
+                      Ver chat
+                    </button>
+                  </div>
+                </div>
+              </div>
+
             </div>
 
-            <!-- Cliente: nombre + contacto + fechas -->
-            <div>
-              <div class="text-sm font-medium text-[#2f3f56]">
+            <!-- Detalle -->
+            <div *ngIf="expanded()[o.id]" class="px-5 pb-4 bg-[#fafbff]">
+              <div class="mt-2 rounded-xl bg-white ring-1 ring-[#e4e9f5] p-3 space-y-2">
+                <ng-container *ngIf="o.items.length; else noItems">
+                  <div *ngFor="let it of o.items" class="flex items-center gap-3 rounded-lg p-2 ring-1 ring-[#e8ecf4]">
+                    <img [src]="it.imageUrl" [alt]="it.name" class="w-10 h-10 rounded object-contain" />
+                    <div class="flex-1">
+                      <div class="text-sm">
+                        {{ it.code ? it.code + ' ' : '' }}{{ it.name }}
+                      </div>
+                      <div class="text-[11px] text-neutral-500">
+                        {{ it.quantity }} un. ×
+                        {{ it.price | currency : 'CLP' : 'symbol-narrow' : '1.0-0' }}
+                      </div>
+                    </div>
+                    <div class="text-sm font-semibold">
+                      {{ it.lineTotal | currency : 'CLP' : 'symbol-narrow' : '1.0-0' }}
+                    </div>
+                  </div>
+                </ng-container>
+                <ng-template #noItems>
+                  <div class="text-[12px] text-neutral-500 p-1">
+                    Esta reserva no trae detalle de ítems desde la API.
+                  </div>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="items.length === 0" class="px-5 py-6 text-sm text-neutral-500">
+            No hay pedidos para este filtro.
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ====== LISTA / CARDS MÓVIL (md-) ====== -->
+      <div *ngIf="!loading && !error" class="md:hidden space-y-3">
+        <div *ngFor="let o of pagedItems" class="bg-white rounded-2xl ring-1 ring-[#e8ecf4] overflow-hidden">
+          <!-- Cabecera del card -->
+          <div class="p-3 flex items-start gap-3">
+            <button
+              class="mt-1 w-7 h-7 flex-shrink-0 grid place-items-center rounded-full ring-1 ring-[#e8ecf4] bg-white text-xs"
+              (click)="toggle(o.id)" [attr.aria-expanded]="expanded()[o.id] ? 'true' : 'false'" title="Ver detalle">
+              <span [style.transform]="expanded()[o.id] ? 'rotate(180deg)' : ''">⌄</span>
+            </button>
+
+            <div class="flex-1">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[11px] text-neutral-500">#{{ o.code }}</span>
+
+                <span class="text-[11px] px-2 py-1 rounded-full" [ngClass]="{
+                    'bg-amber-100 text-amber-800': o.status === 'pending',
+                    'bg-green-100 text-green-800': o.status === 'confirmed',
+                    'bg-red-100 text-red-700': o.status === 'cancelled'
+                  }">
+                  {{ o.status }}
+                </span>
+              </div>
+
+              <div class="mt-1 text-sm font-semibold text-[#2f3f56]">
                 {{ o.customerName || o.customerId || '(sin datos)' }}
               </div>
-              <div class="text-[11px] text-neutral-500">
+
+              <div class="mt-0.5 text-[11px] text-neutral-500">
                 <ng-container *ngIf="o.customerEmail">
                   {{ o.customerEmail }} ·
                 </ng-container>
@@ -103,59 +237,44 @@
                   {{ o.reserveDate | date : 'dd/MM/yyyy' }}
                 </ng-container>
               </div>
+
+              <div class="mt-2 text-sm font-semibold">
+                {{ o.total | currency : 'CLP' : 'symbol-narrow' : '1.0-0' }}
+              </div>
             </div>
+          </div>
 
-            <div>
-              <span class="text-[11px] px-2 py-1 rounded-full" [ngClass]="{
-                  'bg-amber-100 text-amber-800': o.status === 'pending',
-                  'bg-green-100 text-green-800':
-                    o.status === 'confirmed',
-                  'bg-red-100 text-red-700':
-                    o.status === 'cancelled'
-                }">
-                {{ o.status }}
-              </span>
-            </div>
+          <!-- Acciones -->
+          <div class="border-t border-[#eef2fa] px-3 py-2 flex flex-wrap gap-2">
+            <button
+              class="flex-1 min-w-[45%] px-3 py-1 text-xs rounded-full bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+              [disabled]="o.status !== 'pending'" (click)="cancel(o)">
+              Cancelar
+            </button>
 
-            <div class="font-semibold text-sm">
-              {{
-              o.total
-              | currency : 'CLP' : 'symbol-narrow' : '1.0-0'
-              }}
-            </div>
+            <button
+              class="flex-1 min-w-[45%] px-3 py-1 text-xs rounded-full bg-[#2f3f56] text-white hover:bg-[#223149] disabled:opacity-50"
+              [disabled]="o.status !== 'pending'" (click)="complete(o)">
+              Completar
+            </button>
 
-            <div class="flex justify-end gap-2">
-              <button class="px-3 py-1 text-xs rounded-full bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
-                [disabled]="o.status !== 'pending'" (click)="cancel(o)">
-                Cancelar
-              </button>
+            <button *ngIf="o.status === 'confirmed' || o.status === 'cancelled'"
+              class="w-full px-3 py-1 text-xs rounded-full border border-[#2f3f56] text-[#2f3f56] hover:bg-[#f3f5f8]"
+              (click)="reopen(o)">
+              Re-abrir
+            </button>
 
-              <button
-                class="px-3 py-1 text-xs rounded-full bg-[#2f3f56] text-white hover:bg-[#223149] disabled:opacity-50"
-                [disabled]="o.status !== 'pending'" (click)="complete(o)">
-                Completar
-              </button>
-
-              <button *ngIf="o.status === 'confirmed' || o.status === 'cancelled'"
-                class="px-3 py-1 text-xs rounded-full border border-[#2f3f56] text-[#2f3f56] hover:bg-[#f3f5f8]"
-                (click)="reopen(o)">
-                Re-abrir
-              </button>
-            </div>
-
-
-            <!-- Ver chat -->
             <button *ngIf="o.chatId" type="button"
-              class="px-3 py-1 text-xs rounded-full border border-[#dfe6f6] text-[#2f3f56] hover:bg-[#f5f7fb]"
+              class="w-full px-3 py-1 text-xs rounded-full border border-[#dfe6f6] text-[#2f3f56] hover:bg-[#f5f7fb]"
               (click)="goToChat(o.chatId)">
               Ver chat
             </button>
           </div>
 
-          <!-- Detalle -->
-          <div *ngIf="expanded()[o.id]" class="px-4 pb-3">
+          <!-- Detalle de ítems -->
+          <div *ngIf="expanded()[o.id]" class="border-t border-[#eef2fa] px-3 pb-3 pt-2">
             <div class="rounded-xl bg-[#f5f7fb]/60 ring-1 ring-[#e8ecf4] p-2 space-y-2">
-              <ng-container *ngIf="o.items.length; else noItems">
+              <ng-container *ngIf="o.items.length; else noItemsMobile">
                 <div *ngFor="let it of o.items"
                   class="flex items-center gap-3 bg-white rounded-lg p-2 ring-1 ring-[#e8ecf4]">
                   <img [src]="it.imageUrl" [alt]="it.name" class="w-10 h-10 rounded object-contain" />
@@ -165,24 +284,15 @@
                     </div>
                     <div class="text-[11px] text-neutral-500">
                       {{ it.quantity }} un. ×
-                      {{
-                      it.price
-                      | currency
-                      : 'CLP'
-                      : 'symbol-narrow'
-                      : '1.0-0'
-                      }}
+                      {{ it.price | currency : 'CLP' : 'symbol-narrow' : '1.0-0' }}
                     </div>
                   </div>
                   <div class="text-sm font-medium">
-                    {{
-                    it.lineTotal
-                    | currency : 'CLP' : 'symbol-narrow' : '1.0-0'
-                    }}
+                    {{ it.lineTotal | currency : 'CLP' : 'symbol-narrow' : '1.0-0' }}
                   </div>
                 </div>
               </ng-container>
-              <ng-template #noItems>
+              <ng-template #noItemsMobile>
                 <div class="text-[12px] text-neutral-500 p-2">
                   Esta reserva no trae detalle de ítems desde la API.
                 </div>
@@ -191,10 +301,11 @@
           </div>
         </div>
 
-        <div *ngIf="items.length === 0" class="px-4 py-8 text-sm text-neutral-500">
+        <div *ngIf="items.length === 0" class="px-1 py-4 text-sm text-neutral-500 text-center">
           No hay pedidos para este filtro.
         </div>
       </div>
+
 
       <!-- PAGINADOR -->
       <div

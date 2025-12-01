@@ -168,18 +168,17 @@ export class AdminOrdersPage implements OnInit, OnDestroy {
   }
 
   reopen(o: UiReservation): void {
-  const prev = o.status;
-  o.status = 'pending';
+    const prev = o.status;
+    o.status = 'pending';  
 
-  this.orders.reopen(o.id).subscribe({
-    next: (updated) => {
-      Object.assign(o, updated); 
-    },
-    error: () => {
-      o.status = prev;
-    },
-  });
-}
+    this.orders.reopen(o.id).subscribe({
+      next: () => {
+      },
+      error: () => {
+        o.status = prev; 
+      },
+    });
+  }
 
 
 

@@ -1,11 +1,12 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartData, ChartType } from 'chart.js';
 
 @Component({
   selector: 'app-monthly-bar-chart',
   standalone: true,
-  imports: [BaseChartDirective],      
+  imports: [BaseChartDirective],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <canvas
       baseChart
@@ -16,15 +17,31 @@ import { ChartData, ChartType } from 'chart.js';
 })
 export class MonthlyBarChartComponent {
 
-  @Input() monthly: Record<string, number> = {};
+  @Input() set monthly(value: Record<string, number>) {
+    this._monthly = value || {};
+    this.buildChartData(); // solo cuando cambian los datos
+  }
+
+  private _monthly: Record<string, number> = {};
 
   chartType: ChartType = 'bar';
 
-  get chartData(): ChartData<'bar'> {
-    const labels = Object.keys(this.monthly);
-    const values = Object.values(this.monthly);
+  // objeto estable, no se recrea en cada CD
+  chartData: ChartData<'bar'> = {
+    labels: [],
+    datasets: [
+      {
+        label: 'Pedidos',
+        data: [],
+      },
+    ],
+  };
 
-    return {
+  private buildChartData() {
+    const labels = Object.keys(this._monthly);
+    const values = Object.values(this._monthly);
+
+    this.chartData = {
       labels,
       datasets: [
         {

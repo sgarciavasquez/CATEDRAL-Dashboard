@@ -45,16 +45,24 @@ export class ChatStoreService {
   constructor(
     private chatsApi: ChatApiService,
     private msgsApi: MessagesApiService
-  ) {}
+  ) { }
 
-  /** Mapea ApiChat -> ChatRow usando tus helpers y rellenando nombres por defecto */
   private toRow(api: ApiChat): ChatRow {
     const me = this.currentUser();
     const role: Role = me.role === 'admin' ? 'admin' : 'cliente';
 
     const row = mapApiChatToRow(api, me.id, role);
 
-    // Si no hay nombre “bonito”, usamos los fallback
+    if (!row.otherName && row.otherId) {
+      const known = this._chats().find(r =>
+        r.otherId === row.otherId &&
+        r.otherName &&
+        !r.otherName.startsWith(this.baseNameForCliente)
+      );
+      if (known) {
+        row.otherName = known.otherName;
+      }
+    }
     if (!row.otherName) {
       if (role === 'admin') {
         row.otherName = `${this.baseNameForCliente} ${row.otherId.slice(-4)}`;
@@ -66,7 +74,6 @@ export class ChatStoreService {
     return row;
   }
 
-  /** Mapea ApiMessage -> Msg */
   private toMsg(api: ApiMessage): Msg {
     return mapApiMessageToMsg(api);
   }

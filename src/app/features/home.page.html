@@ -5,36 +5,42 @@
 
 
   <nav class="bg-white text-[13px] py-2 border-b border-neutral-200 mt-2 md:mt-1">
-    <div class="max-w-6xl mx-auto px-3">
-      <div class="flex items-center justify-center gap-4 overflow-x-auto no-scrollbar">
-        <a routerLink="/catalogo" [queryParams]="{cat:'mujer'}"
-          class="px-2 pb-1 whitespace-nowrap hover:text-[#2f3f56] transition-colors">
-          Perfumes de Mujer
-        </a>
+    <div class="max-w-6xl mx-auto">
+      <!-- Contenedor scroll SOLO en móvil -->
+      <div class="overflow-x-auto no-scrollbar md:overflow-visible">
+        <!-- Fila de enlaces -->
+        <div class="flex items-center gap-4 px-3
+               md:justify-center md:px-0 md:gap-6">
+          <a routerLink="/catalogo" [queryParams]="{cat:'mujer'}"
+            class="px-2 pb-1 whitespace-nowrap hover:text-[#2f3f56] transition-colors">
+            Perfumes de Mujer
+          </a>
 
-        <a routerLink="/catalogo" [queryParams]="{cat:'hombre'}"
-          class="px-2 pb-1 whitespace-nowrap hover:text-[#2f3f56] transition-colors">
-          Perfumes de Hombre
-        </a>
+          <a routerLink="/catalogo" [queryParams]="{cat:'hombre'}"
+            class="px-2 pb-1 whitespace-nowrap hover:text-[#2f3f56] transition-colors">
+            Perfumes de Hombre
+          </a>
 
-        <a routerLink="/catalogo" [queryParams]="{cat:'disenador'}"
-          class="px-2 pb-1 whitespace-nowrap hover:text-[#2f3f56] transition-colors">
-          Perfumes de Diseñador
-        </a>
+          <a routerLink="/catalogo" [queryParams]="{cat:'disenador'}"
+            class="px-2 pb-1 whitespace-nowrap hover:text-[#2f3f56] transition-colors">
+            Perfumes de Diseñador
+          </a>
 
-        <a routerLink="/catalogo" [queryParams]="{cat:'nicho'}"
-          class="px-2 pb-1 whitespace-nowrap hover:text-[#2f3f56] transition-colors">
-          Perfumes de Nicho
-        </a>
+          <a routerLink="/catalogo" [queryParams]="{cat:'nicho'}"
+            class="px-2 pb-1 whitespace-nowrap hover:text-[#2f3f56] transition-colors">
+            Perfumes de Nicho
+          </a>
 
-        <span class="mx-2 h-5 w-px bg-neutral-200 hidden sm:inline-block"></span>
+          <span class="mx-2 h-5 w-px bg-neutral-200 hidden sm:inline-block"></span>
 
-        <a routerLink="/faq" class="px-2 pb-1 whitespace-nowrap hover:text-[#2f3f56] transition-colors">
-          FAQ
-        </a>
+          <a routerLink="/faq" class="px-2 pb-1 whitespace-nowrap hover:text-[#2f3f56] transition-colors">
+            FAQ
+          </a>
+        </div>
       </div>
     </div>
   </nav>
+
 
 
   <!-- Carrusel -->

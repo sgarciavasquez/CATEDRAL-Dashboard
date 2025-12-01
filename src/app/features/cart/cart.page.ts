@@ -14,6 +14,7 @@ import { GuestReserveDialogComponent, GuestReserveData,} from '../cart/guest-res
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-cart',
@@ -23,7 +24,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatButtonModule,         
     MatProgressSpinnerModule,   
     HeaderComponent,
-    DecimalPipe,
+    MatIconModule,
     FooterComponent,
     MatDialogModule,
     MatSnackBarModule,

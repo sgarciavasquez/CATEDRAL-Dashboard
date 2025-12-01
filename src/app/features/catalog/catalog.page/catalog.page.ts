@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgFor } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription, combineLatest } from 'rxjs';
 
@@ -10,41 +10,47 @@ import { HeaderComponent } from '../../../shared/components/header/header';
 import { FooterComponent } from '../../../shared/components/footer/footer';
 import { CategoryService } from '../../../shared/services/productservice/category.service';
 import { ApiCategory } from '../../../shared/services/productservice/product.api';
+import { FormsModule } from '@angular/forms';
 
 // Cualquier slug de categoría normalizado o '' para "todas"
 type CatKey = '' | string;
 
+// NUEVO: opciones de ordenamiento
+type SortOption = 'relevance' | 'priceAsc' | 'priceDesc' | 'name';
+
 @Component({
   selector: 'app-catalog-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, ProductCardComponent, HeaderComponent, FooterComponent],
+  imports: [
+    CommonModule,
+    RouterLink,
+    NgFor,
+    FormsModule,
+    ProductCardComponent,
+    HeaderComponent,
+    FooterComponent,
+  ],
   templateUrl: './catalog.page.html',
   styleUrls: ['./catalog.page.css'],
 })
 export class CatalogPage implements OnInit, OnDestroy {
+
   private route = inject(ActivatedRoute);
   private productsSrv = inject(ProductService);
   private categoriesSrv = inject(CategoryService);
 
-  // categorías con slug normalizado
   categories: (ApiCategory & { slug: string })[] = [];
-
-  /** todos los productos cargados desde la API */
   all: UiProduct[] = [];
-  /** productos filtrados (categoría + búsqueda) */
   items: UiProduct[] = [];
 
   loading = true;
 
-  /** slug normalizado de la categoría seleccionada, '' = todas */
   selectedCategory: CatKey = '';
-
-  /** término de búsqueda (texto del input) */
   searchTerm = '';
+  sortOption: SortOption = 'relevance';
 
   private sub?: Subscription;
 
-  /** Normaliza cadena: minúsculas, sin tildes y sin espacios extremos */
   private norm(s: string): string {
     return (s || '')
       .toLowerCase()
@@ -53,64 +59,90 @@ export class CatalogPage implements OnInit, OnDestroy {
       .trim();
   }
 
-  /** Devuelve tags (slugs) del producto (ya vienen normalizados desde listUi) */
   private tagsOf(p: UiProduct): string[] {
     return Array.isArray(p.categoryNames) ? p.categoryNames : [];
   }
 
-
-
-  /** ¿El producto tiene esta categoría (slug)? */
   private matchesCategory(p: UiProduct, key: CatKey): boolean {
-    if (!key) return true; // '' = todas
+    if (!key) return true;
 
     const tags = this.tagsOf(p);
 
-    // Combos especiales: Diseñador Mujer / Diseñador Hombre
-    if (key === 'mujer-dis') {
-      return tags.includes('mujer') && tags.includes('disenador');
-    }
+    if (key === 'mujer-dis') return tags.includes('mujer') && tags.includes('disenador');
+    if (key === 'hombre-dis') return tags.includes('hombre') && tags.includes('disenador');
 
-    if (key === 'hombre-dis') {
-      return tags.includes('hombre') && tags.includes('disenador');
-    }
-
-    // Categorías simples (Diseñador, Nicho, Mujer, Hombre, etc.)
     return tags.includes(key);
   }
 
-  /** ¿El producto matchea el texto buscado? (por nombre, código o categorías) */
   private matchesSearch(p: UiProduct, q: string): boolean {
     if (!q) return true;
 
-    const composite = `${p.code || ''} ${p.name || ''} ${(p.categoryNames || []).join(' ')}`;
+    const composite =
+      `${p.code || ''} ${p.name || ''} ${(p.categoryNames || []).join(' ')}`;
     const haystack = this.norm(composite);
 
     return haystack.includes(q);
   }
 
-  /** Aplica filtro de categoría + búsqueda sobre `all` y actualiza `items` */
-  private applyFilters(): void {
+  applyFilters(): void {
     let result = this.all;
-
-    // 1) filtro por categoría
     if (this.selectedCategory) {
       result = result.filter(p => this.matchesCategory(p, this.selectedCategory));
     }
-
-    // 2) filtro por texto de búsqueda
     const q = this.norm(this.searchTerm);
     if (q) {
       result = result.filter(p => this.matchesSearch(p, q));
     }
+    this.applySort(result);
 
     this.items = result;
   }
 
-  /** handler del input de búsqueda */
+  private applySort(arr: UiProduct[]) {
+    switch (this.sortOption) {
+      case 'priceAsc':
+        arr.sort((a, b) => a.price - b.price);
+        break;
+
+      case 'priceDesc':
+        arr.sort((a, b) => b.price - a.price);
+        break;
+
+      case 'name':
+        arr.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+
+      default:
+        break;
+    }
+  }
+
   onSearch(term: string): void {
     this.searchTerm = term || '';
     this.applyFilters();
+  }
+
+  private sortList(list: UiProduct[]): UiProduct[] {
+    const arr = [...list];
+
+    switch (this.sortOption) {
+      case 'priceAsc':
+        return arr.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+
+      case 'priceDesc':
+        return arr.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+
+      case 'name':
+        return arr.sort((a, b) =>
+          (a.name ?? '').localeCompare(b.name ?? '', 'es', {
+            sensitivity: 'base',
+          })
+        );
+
+      case 'relevance':
+      default:
+        return arr; // Mantener tal cual viene la API
+    }
   }
 
   get title(): string {
@@ -130,15 +162,12 @@ export class CatalogPage implements OnInit, OnDestroy {
     return `Perfumes · ${pretty}`;
   }
 
-
   ngOnInit(): void {
     const data$ = this.productsSrv.listUi();
     const qp$ = this.route.queryParams;
-
-    // Cargamos categorías y les agregamos el slug normalizado
     this.categoriesSrv.list().subscribe({
       next: (cats) => {
-        this.categories = cats.map(c => ({
+        this.categories = cats.map((c) => ({
           ...c,
           slug: this.norm(c.name),
         }));
@@ -146,7 +175,6 @@ export class CatalogPage implements OnInit, OnDestroy {
       error: () => console.error('Error cargando categorías'),
     });
 
-    // Escuchamos cambios de productos + queryParams (cat)
     this.sub = combineLatest([data$, qp$]).subscribe({
       next: ([list, params]) => {
         this.all = list ?? [];

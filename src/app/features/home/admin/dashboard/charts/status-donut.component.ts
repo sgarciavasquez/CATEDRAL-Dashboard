@@ -1,11 +1,12 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartData, ChartType } from 'chart.js';
 
 @Component({
   selector: 'app-status-donut',
   standalone: true,
-  imports: [BaseChartDirective],        
+  imports: [BaseChartDirective],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <canvas
       baseChart
@@ -15,20 +16,34 @@ import { ChartData, ChartType } from 'chart.js';
   `,
 })
 export class StatusDonutComponent {
-  @Input() stats: any = {};
+  // stats viene del padre (dashboard)
+  @Input() set stats(value: any) {
+    this._stats = value || {};
+    this.buildChartData(); // solo recalculamos cuando cambia el input
+  }
+
+  private _stats: any = {};
 
   chartType: ChartType = 'doughnut';
 
-  get chartData(): ChartData<'doughnut'> {
-    return {
+  // este objeto se mantiene estable entre ciclos
+  chartData: ChartData<'doughnut'> = {
+    labels: ['Pendientes', 'Completados', 'Cancelados'],
+    datasets: [
+      { data: [0, 0, 0] },
+    ],
+  };
+
+  private buildChartData() {
+    const s = this._stats || {};
+    const pending   = s.pending   ?? 0;
+    const completed = s.completed ?? 0;
+    const cancelled = s.cancelled ?? 0;
+    this.chartData = {
       labels: ['Pendientes', 'Completados', 'Cancelados'],
       datasets: [
         {
-          data: [
-            this.stats.pending ?? 0,
-            this.stats.completed ?? 0,
-            this.stats.cancelled ?? 0,
-          ],
+          data: [pending, completed, cancelled],
         },
       ],
     };

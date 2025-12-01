@@ -1,56 +1,144 @@
 <app-header></app-header>
 
-<main class="container-7xl py-6 grid grid-cols-12 gap-6">
-  <!-- Sidebar categorías -->
-  <aside class="col-span-12 md:col-span-3">
-    <div class="bg-white rounded-xl shadow ring-1 ring-[#e8ecf4] overflow-hidden">
-      <div class="px-4 py-3 bg-[#2f3f56] text-white font-semibold text-sm">Categorías</div>
+<div class="min-h-screen flex flex-col bg-[#f7f9fc]">
+  <main class="flex-1">
+    <section class="container-7xl py-4 md:py-6">
+      <div class="md:hidden mb-4">
+        <p class="text-[11px] text-neutral-500 mb-1 px-1">
+          Filtrar por categoría
+        </p>
 
-      <nav class="p-2 flex flex-col text-sm">
-        <!-- Botón para ver todas -->
-        <a [routerLink]="['/catalogo']" class="px-4 py-2 rounded hover:bg-stone-100"
-          [class.bg-[#e9eef8]]="!selectedCategory">
-          Todas
-        </a>
+        <div class="flex gap-2 overflow-x-auto no-scrollbar px-1 text-xs">
 
-        <!-- Categorías dinámicas -->
-        <a *ngFor="let c of categories" [routerLink]="['/catalogo']" [queryParams]="{ cat: c.name }"
-          class="px-4 py-2 rounded hover:bg-stone-100 capitalize" [class.bg-[#e9eef8]]="selectedCategory === c.slug">
-          {{ c.name }}
-        </a>
-      </nav>
-    </div>
-  </aside>
+          <!-- Todas -->
+          <a
+            [routerLink]="['/catalogo']"
+            class="inline-flex items-center whitespace-nowrap rounded-full px-3 py-1.5 border border-slate-200 bg-white shadow-sm"
+            [ngClass]="{
+              'bg-[#2f3f56] text-white border-[#2f3f56]':
+              !selectedCategory
+            }"
+          >
+            Todas
+          </a>
 
-  <!-- Contenido -->
-  <section class="col-span-12 md:col-span-9">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-lg md:text-xl font-semibold">{{ title }}</h2>
-      <div class="text-xs text-neutral-500">
-        Ordenar por: <span class="underline">Más vendidos</span>
+          <!-- Dinámicas -->
+          <a
+            *ngFor="let c of categories"
+            [routerLink]="['/catalogo']"
+            [queryParams]="{ cat: c.name }"
+            class="inline-flex items-center whitespace-nowrap rounded-full px-3 py-1.5 border border-slate-200 bg-white capitalize shadow-sm"
+            [ngClass]="{
+              'bg-[#2f3f56] text-white border-[#2f3f56]':
+              selectedCategory === c.slug
+            }"
+          >
+            {{ c.name }}
+          </a>
+
+        </div>
       </div>
-    </div>
+      <div class="grid grid-cols-12 gap-6">
+        <aside class="hidden md:block md:col-span-3">
+          <div class="bg-white rounded-xl shadow-sm ring-1 ring-[#e8ecf4] overflow-hidden">
 
-    <div class="mb-4">
-      <label class="sr-only" for="catalogSearch">Buscar perfumes</label>
-      <div class="relative">
-        <input id="catalogSearch" type="search" [value]="searchTerm" (input)="onSearch($any($event.target).value)"
-          placeholder="Buscar por nombre o código…" class="w-full rounded-full border border-slate-200 px-4 py-2 text-sm
-               focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-300" />
+            <div class="px-4 py-3 bg-[#2f3f56] text-white font-semibold text-sm">
+              Categorías
+            </div>
+
+            <nav class="p-2 flex flex-col text-sm">
+
+              <a
+                [routerLink]="['/catalogo']"
+                class="px-4 py-2 rounded-lg hover:bg-stone-100"
+                [ngClass]="{ 'bg-[#e9eef8]': !selectedCategory }">
+                Todas
+              </a>
+
+              <a
+                *ngFor="let c of categories"
+                [routerLink]="['/catalogo']"
+                [queryParams]="{ cat: c.name }"
+                class="px-4 py-2 rounded-lg hover:bg-stone-100 capitalize"
+                [ngClass]="{
+                  'bg-[#e9eef8]': selectedCategory === c.slug
+                }">
+                {{ c.name }}
+              </a>
+
+            </nav>
+          </div>
+        </aside>
+        <section class="col-span-12 md:col-span-9">
+
+          <!-- TÍTULO + ORDENAR -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+
+            <h2 class="text-lg md:text-xl font-semibold text-[#2f3f56]">
+              {{ title }}
+            </h2>
+
+            <!-- ORDENAR POR -->
+            <div class="flex items-center gap-2 text-[12px] sm:text-sm text-neutral-600">
+
+              <span class="whitespace-nowrap">Ordenar por:</span>
+
+              <select
+                [(ngModel)]="sortOption"
+                (change)="applyFilters()"
+                class="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm shadow-sm
+                       focus:ring-2 focus:ring-[#2f3f56]/20 focus:outline-none"
+              >
+                <option value="relevance">Relevancia</option>
+                <option value="priceAsc">Precio: menor a mayor</option>
+                <option value="priceDesc">Precio: mayor a menor</option>
+                <option value="name">Nombre (A–Z)</option>
+              </select>
+
+            </div>
+          </div>
+
+          <!-- BUSCADOR -->
+          <div class="mb-4">
+            <label class="sr-only" for="catalogSearch">Buscar perfumes</label>
+            <div class="relative">
+              <input
+                id="catalogSearch"
+                type="search"
+                [value]="searchTerm"
+                (input)="onSearch($any($event.target).value)"
+                placeholder="Buscar por nombre o código…"
+                class="w-full rounded-full border border-slate-200 px-4 py-2 text-sm bg-white shadow-sm
+                       focus:outline-none focus:ring-2 focus:ring-[#2f3f56]/20 focus:border-[#2f3f56]"
+              />
+            </div>
+          </div>
+
+          <!-- LOADING -->
+          <div *ngIf="loading" class="text-sm text-neutral-500">
+            Cargando…
+          </div>
+
+          <!-- LISTADO DE PRODUCTOS -->
+          <ng-container *ngIf="!loading">
+
+            <div *ngIf="items.length === 0" class="text-sm text-neutral-500">
+              No hay productos para esta categoría.
+            </div>
+
+            <div class="grid gap-4 md:gap-6 sm:grid-cols-2">
+              <app-product-card
+                *ngFor="let p of items"
+                [product]="p">
+              </app-product-card>
+            </div>
+
+          </ng-container>
+
+        </section>
       </div>
-    </div>
+    </section>
+  </main>
 
-    <div *ngIf="loading" class="text-sm text-neutral-500">Cargando…</div>
-
-    <ng-container *ngIf="!loading">
-      <div *ngIf="items.length === 0" class="text-sm text-neutral-500">
-        No hay productos para esta categoría.
-      </div>
-      <div class="grid gap-4 md:gap-6 md:grid-cols-2">
-        <app-product-card *ngFor="let p of items" [product]="p"></app-product-card>
-      </div>
-    </ng-container>
-  </section>
-</main>
-
-<app-footer class="mt-auto"></app-footer>
+  <app-footer class="mt-auto"></app-footer>
+</div>

@@ -1,15 +1,5 @@
 // chat-thread.component.ts
-import {
-  Component,
-  inject,
-  signal,
-  computed,
-  effect,
-  ViewChild,
-  ElementRef,
-  OnDestroy,
-
-} from '@angular/core';
+import { Component, inject, signal, computed, effect, ViewChild, ElementRef, OnDestroy, } from '@angular/core';
 import { CommonModule, NgIf, NgFor } from '@angular/common';
 import { interval, Subscription } from 'rxjs';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -20,7 +10,7 @@ import { ChatContextService, ReservationPreview } from './chat-context.service';
 
 import { FooterComponent } from '../shared/components/footer/footer';
 import { HeaderComponent } from '../shared/components/header/header';
-
+import { UserService, ApiUser } from '../shared/services/user/user.service';
 import { ChatStoreService } from './chat.store.service';
 
 @Component({
@@ -40,11 +30,13 @@ import { ChatStoreService } from './chat.store.service';
 
 export class ChatThreadComponent implements OnDestroy {
 
-  private pollSub?: Subscription; 
+  private pollSub?: Subscription;
   private store = inject(ChatStoreService);
   private route = inject(ActivatedRoute);
   private chatCtx = inject(ChatContextService);
   private orders = inject(OrdersService);
+  private users = inject(UserService);
+
   reservationPreview?: ReservationPreview;
   reservationClosed = false;
   chatClosed = false;
@@ -68,22 +60,45 @@ export class ChatThreadComponent implements OnDestroy {
   constructor() {
     console.log('%c[ChatThread] ctor', 'color:#2563eb', { chatId: this.chatId });
 
+    const me = this.store.currentUser();
 
-    this.store.markChatReadLocal(this.chatId);
-    this.store.openThread(this.chatId); 
+    // Si todavía tiene el placeholder, voy a buscarme al backend
+    if (!me.id || me.id === 'REEMPLAZA_CON_ID_USUARIO') {
+      this.users.me().subscribe({
+        next: (u: ApiUser) => {
+          const role = u.role === 'admin' ? 'admin' : 'cliente';
+          const id = u._id ?? (u as any).id ?? '';
 
-    // Limpiar badge local y cargar mensajes
+          this.store.setCurrentUser({
+            id,
+            name: u.name ?? 'Yo',
+            role,
+          });
+
+          this.initThread();
+        },
+        error: (e) => {
+          console.error('[ChatThread] me() ERROR en thread', e);
+          // Igual inicializamos, pero sin markRead correcto
+          this.initThread();
+        },
+      });
+    } else {
+      // Ya tengo usuario en el store
+      this.initThread();
+    }
+  }
+
+  private initThread() {
     this.store.markChatReadLocal(this.chatId);
     this.store.openThread(this.chatId);
 
-    // 1) Intentar obtener preview desde ChatContext (cuando vienes desde la reserva)
     const ctxPreview = this.chatCtx.get(this.chatId);
     if (ctxPreview) {
       console.log('[ChatThread] preview desde ChatContext:', ctxPreview);
       this.applyPreview(ctxPreview);
     }
 
-    // 2) Si no hay nada, probar con history.state (navigate con state)
     if (!this.reservationPreview) {
       const st = (history as any)?.state ?? {};
       if (st?.reservationPreview) {
@@ -92,17 +107,14 @@ export class ChatThreadComponent implements OnDestroy {
       }
     }
 
-    // 3) Si aún no tenemos preview, pedirlo al backend por chatId
     if (!this.reservationPreview) {
       this.loadPreviewByChatId();
     }
 
-    // Guardar el último preview en el contexto si ya lo tenemos
     if (this.reservationPreview) {
       this.chatCtx.set(this.chatId, this.reservationPreview);
     }
 
-    // Auto-scroll cuando cambian los mensajes
     effect(() => {
       const _ = this.msgs();
       queueMicrotask(() => this.scrollToEnd());
@@ -111,22 +123,19 @@ export class ChatThreadComponent implements OnDestroy {
     this.startPolling();
   }
 
-  private startPolling() {
-    // si ya hay un polling viejo, lo cortamos
-    this.pollSub?.unsubscribe();
 
+  private startPolling() {
+    this.pollSub?.unsubscribe();
     this.pollSub = interval(4000).subscribe(() => {
-      // recarga los mensajes del chat actual
       this.store.openThread(this.chatId);
     });
   }
 
-   ngOnDestroy(): void {
+  ngOnDestroy(): void {
     this.pollSub?.unsubscribe();
   }
 
 
-  /** Llama a /reservations/by-chat/:chatId para armar el resumen */
   private loadPreviewByChatId() {
     console.log('[ChatThread] loadPreviewByChatId ->', this.chatId);
     this.orders.getPreviewByChat(this.chatId).subscribe({
@@ -194,4 +203,12 @@ export class ChatThreadComponent implements OnDestroy {
       });
     } catch { }
   }
+
+  onEnter(ev: any) {
+    if (ev.shiftKey) return;
+    ev.preventDefault();
+    this.send();
+  }
+
+
 }
