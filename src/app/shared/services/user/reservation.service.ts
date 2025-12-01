@@ -72,7 +72,7 @@ type UpperStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED';
 @Injectable({ providedIn: 'root' })
 export class ReservationService {
   private http = inject(HttpClient);
-  private base = environment.apiUrl;
+  private base = `${environment.apiUrl}/reservations`;
 
   listByUser(userId: string, status?: UpperStatus): Observable<Reservation[]> {
     console.log('%c[ReservationsSvc] listByUser()', 'color:#9333ea', { userId, status });
@@ -80,7 +80,7 @@ export class ReservationService {
     if (status) params = params.set('status', status);
 
     return this.http
-      .get<ApiReservation[]>(`${this.base}/reservations/user/${userId}`, { params })
+      .get<ApiReservation[]>(`${this.base}/user/${userId}`, { params })
       .pipe(
         tap((raw) => console.log('[ReservationsSvc] raw response:', raw)),
         map(arr => (arr ?? []).map(this.toReservation)),
@@ -96,7 +96,7 @@ export class ReservationService {
     console.log('%c[ReservationsSvc] create()', 'color:#0ea5e9', payload);
 
     return this.http
-      .post<ApiReservation>(`${this.base}/reservations`, payload)
+      .post<ApiReservation>(this.base, payload)
       .pipe(
         map(this.toReservation),
         tap((res) => console.log('%c[ReservationsSvc] created:', 'color:#16a34a', res))
@@ -107,12 +107,13 @@ export class ReservationService {
     console.log('%c[ReservationsSvc] createGuestReservation()', 'color:#0ea5e9', payload);
 
     return this.http
-      .post<ApiReservation>(`${this.base}/reservations/guest`, payload)
+      .post<ApiReservation>(`${this.base}/guest`, payload)
       .pipe(
         map(this.toReservation),
         tap((res) => console.log('%c[ReservationsSvc] guest created:', 'color:#16a34a', res))
       );
   }
+
 
   private toReservation = (a: ApiReservation): Reservation => {
     const userObj = typeof a.user === 'object' ? a.user : undefined;
