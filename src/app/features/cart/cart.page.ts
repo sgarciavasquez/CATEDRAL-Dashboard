@@ -110,7 +110,6 @@ export class CartPage {
     }
 
     if (userId) {
-      // ===== FLUJO NORMAL (USUARIO LOGEADO) =====
       const payload: CreateReservationPayload = {
         user: userId,
         reservationDetail: reservationDetail.map(d => ({

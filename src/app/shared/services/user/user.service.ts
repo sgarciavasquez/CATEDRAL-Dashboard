@@ -17,20 +17,25 @@ export interface ApiUser {
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private http = inject(HttpClient);
+
   private base = environment.apiUrl;
 
   me(): Observable<ApiUser> {
-    return this.http.get<any>(`${this.base}/auth/me`).pipe(
-      map((raw) => ({
-        _id: raw?._id ?? raw?.id ?? raw?.userId ?? undefined,
-        id:  raw?.id  ?? raw?._id ?? raw?.userId ?? undefined,
-        userId: raw?.userId,
-        name: raw?.name ?? '',
-        email: raw?.email ?? '',
-        phone: raw?.phone ?? '',
-        role: raw?.role ?? 'customer',
-      }))
-    );
+    return this.http
+      .get<any>(`${this.base}/auth/me`, {
+        withCredentials: true, 
+      })
+      .pipe(
+        map((raw) => ({
+          _id: raw?._id ?? raw?.id ?? raw?.userId ?? undefined,
+          id: raw?.id ?? raw?._id ?? raw?.userId ?? undefined,
+          userId: raw?.userId,
+          name: raw?.name ?? '',
+          email: raw?.email ?? '',
+          phone: raw?.phone ?? '',
+          role: raw?.role ?? 'customer',
+        }))
+      );
   }
 
   update(id: string, payload: Partial<ApiUser>) {
