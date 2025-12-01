@@ -61,6 +61,7 @@ export class CartPage {
       return;
     }
 
+    // --- Validación de stock ---
     const invalid = items.find((it) => {
       const qty = Number((it as any).quantity ?? (it as any).qty ?? 1);
       const stock = Number((it.product as any).inStock ?? 0);
@@ -82,6 +83,7 @@ export class CartPage {
       return;
     }
 
+    // --- Mapeo a detalle ---
     const reservationDetail = items.map((it) => {
       const qty = Number((it as any).quantity ?? (it as any).qty ?? 1);
       const price = Number((it.product as any).price ?? 0);
@@ -92,6 +94,7 @@ export class CartPage {
       };
     });
 
+    // --- Intentar obtener usuario logeado ---
     let userId: string | null = null;
     let userRole: 'admin' | 'customer' | undefined;
 
@@ -105,35 +108,54 @@ export class CartPage {
       }
     }
 
+    // ========= USUARIO LOGEADO =========
+    // ========= USUARIO LOGEADO =========
     if (userId) {
       const payload: CreateReservationPayload = {
         user: userId,
-        reservationDetail: reservationDetail.map(d => ({
+        reservationDetail: reservationDetail.map((d) => ({
           product: d.product,
           quantity: d.quantity,
         })),
       };
 
-      try {
-        const res = await firstValueFrom(this.reservations.create(payload));
-        console.log('[CartPage] reserva creada (user):', res);
-        this.cart.clear();
+      this.reservations.create(payload).subscribe({
+        next: (res) => {
+          console.log('[CartPage] reserva creada (user):', res);
 
-        const target = userRole === 'admin' ? '/admin/orders' : '/perfil';
-        this.router.navigate([target]);
-      } catch (err: any) {
-        console.error('[CartPage] error create', err);
-        this.showSnack(err?.error?.message ?? 'No se pudo crear la reserva');
-      }
+          // 1) Vaciar carrito
+          this.cart.clear();
+
+          // 2) Navegar según rol
+          const target =
+            userRole === 'admin'
+              ? '/admin/pedidos'      // <-- ESTA es tu ruta real
+              : '/perfil';
+
+          this.router.navigate([target]);
+        },
+        error: (err) => {
+          console.error('[CartPage] error create', err);
+          this.showSnack(
+            err?.error?.message ?? 'No se pudo crear la reserva'
+          );
+        },
+      });
 
       return;
     }
 
-    // ===== INVITADO =====
-    const ref = this.dialog.open<GuestReserveDialogComponent, void, GuestReserveData>(
+
+    // ========= INVITADO =========
+    const ref = this.dialog.open<
       GuestReserveDialogComponent,
-      { width: '420px', autoFocus: true, restoreFocus: true }
-    );
+      void,
+      GuestReserveData
+    >(GuestReserveDialogComponent, {
+      width: '420px',
+      autoFocus: true,
+      restoreFocus: true,
+    });
 
     const data = await firstValueFrom(ref.afterClosed());
     if (!data) {
@@ -145,22 +167,27 @@ export class CartPage {
       name: data.name,
       email: data.email,
       phone: data.phone,
-      reservationDetail: reservationDetail.map(d => ({
+      reservationDetail: reservationDetail.map((d) => ({
         product: d.product,
         quantity: d.quantity,
       })),
     };
 
-    try {
-      const res = await firstValueFrom(
-        this.reservations.createGuestReservation(guestPayload)
-      );
-      console.log('[CartPage] reserva creada (guest):', res);
-      this.cart.clear();
-      this.showSnack(`Gracias ${data.name}. Te contactaremos al correo ${data.email}.`);
-    } catch (err: any) {
-      console.error('[CartPage] error createGuest', err);
-      this.showSnack(err?.error?.message ?? 'No se pudo crear la reserva como invitado');
-    }
+    this.reservations.createGuestReservation(guestPayload).subscribe({
+      next: (res) => {
+        console.log('[CartPage] reserva creada (guest):', res);
+        this.cart.clear();
+        this.showSnack(
+          `Gracias ${data.name}. Te contactaremos al correo ${data.email}.`
+        );
+      },
+      error: (err) => {
+        console.error('[CartPage] error createGuest', err);
+        this.showSnack(
+          err?.error?.message ?? 'No se pudo crear la reserva como invitado'
+        );
+      },
+    });
   }
+
 }
