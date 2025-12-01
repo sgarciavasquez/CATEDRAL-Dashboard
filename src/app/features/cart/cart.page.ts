@@ -36,6 +36,7 @@ export class CartPage {
   private snack = inject(MatSnackBar);
 
   items$ = this.cart.items$;
+  isSubmitting = false; // <-- NUEVO
 
   inc(it: CartItem) { this.cart.add(it.product, 1); }
   dec(it: CartItem) { this.cart.add(it.product, -1); }
@@ -43,7 +44,6 @@ export class CartPage {
   clear() { this.cart.clear(); }
   total() { return this.cart.total(); }
 
-  // Popup lindo reutilizable
   private showSnack(message: string) {
     this.snack.open(message, 'Entendido', {
       duration: 4000,
@@ -54,140 +54,122 @@ export class CartPage {
   }
 
   async reserve() {
-    const items = await firstValueFrom(this.items$.pipe(take(1)));
-
-    if (!items || !items.length) {
-      this.showSnack('Tu carrito está vacío.');
-      return;
-    }
-
-    // --- Validación de stock ---
-    const invalid = items.find((it) => {
-      const qty = Number((it as any).quantity ?? (it as any).qty ?? 1);
-      const stock = Number((it.product as any).inStock ?? 0);
-      return stock <= 0 || qty > stock;
-    });
-
-    if (invalid) {
-      const qty = Number((invalid as any).quantity ?? (invalid as any).qty ?? 1);
-      const stock = Number((invalid.product as any).inStock ?? 0);
-      const name = String((invalid.product as any).name ?? 'este producto');
-
-      let msg = '';
-      if (stock <= 0) {
-        msg = `“${name}” no tiene stock disponible en este momento.`;
-      } else {
-        msg = `Solo hay ${stock} unidad(es) disponibles de “${name}”. Ajusta la cantidad (tienes ${qty}) para continuar.`;
-      }
-      this.showSnack(msg);
-      return;
-    }
-
-    // --- Mapeo a detalle ---
-    const reservationDetail = items.map((it) => {
-      const qty = Number((it as any).quantity ?? (it as any).qty ?? 1);
-      const price = Number((it.product as any).price ?? 0);
-      return {
-        product: String((it.product as any).id),
-        quantity: qty,
-        subtotal: price * qty,
-      };
-    });
-
-    // --- Intentar obtener usuario logeado ---
-    let userId: string | null = null;
-    let userRole: 'admin' | 'customer' | undefined;
+    // Si ya estoy enviando, no hago nada
+    if (this.isSubmitting) return;
+    this.isSubmitting = true;
 
     try {
-      const me = await firstValueFrom(this.userService.me());
-      userId = me?._id ?? (me as any)?.id ?? null;
-      userRole = (me as any)?.role;
-    } catch (e: any) {
-      if (e?.status !== 401) {
-        console.error('[CartPage] error llamando /auth/me', e);
-      }
-    }
+      const items = await firstValueFrom(this.items$.pipe(take(1)));
 
-    // ========= USUARIO LOGEADO =========
-    // ========= USUARIO LOGEADO =========
-    if (userId) {
-      const payload: CreateReservationPayload = {
-        user: userId,
-        reservationDetail: reservationDetail.map((d) => ({
+      if (!items || !items.length) {
+        this.showSnack('Tu carrito está vacío.');
+        return;
+      }
+
+      const invalid = items.find((it) => {
+        const qty = Number((it as any).quantity ?? (it as any).qty ?? 1);
+        const stock = Number((it.product as any).inStock ?? 0);
+        return stock <= 0 || qty > stock;
+      });
+
+      if (invalid) {
+        const qty = Number((invalid as any).quantity ?? (invalid as any).qty ?? 1);
+        const stock = Number((invalid.product as any).inStock ?? 0);
+        const name = String((invalid.product as any).name ?? 'este producto');
+
+        let msg = '';
+        if (stock <= 0) {
+          msg = `“${name}” no tiene stock disponible en este momento.`;
+        } else {
+          msg = `Solo hay ${stock} unidad(es) disponibles de “${name}”. Ajusta la cantidad (tienes ${qty}) para continuar.`;
+        }
+        this.showSnack(msg);
+        return;
+      }
+
+      const reservationDetail = items.map((it) => {
+        const qty = Number((it as any).quantity ?? (it as any).qty ?? 1);
+        const price = Number((it.product as any).price ?? 0);
+        return {
+          product: String((it.product as any).id),
+          quantity: qty,
+          subtotal: price * qty,
+        };
+      });
+
+      let userId: string | null = null;
+      let userRole: 'admin' | 'customer' | undefined;
+
+      try {
+        const me = await firstValueFrom(this.userService.me());
+        userId = me?._id ?? (me as any)?.id ?? null;
+        userRole = (me as any)?.role;
+      } catch (e: any) {
+        if (e?.status !== 401) {
+          console.error('[CartPage] error llamando /auth/me', e);
+        }
+      }
+
+      if (userId) {
+        // ------- USUARIO LOGEADO -------
+        const payload: CreateReservationPayload = {
+          user: userId,
+          reservationDetail: reservationDetail.map(d => ({
+            product: d.product,
+            quantity: d.quantity,
+          })),
+        };
+
+        const res = await firstValueFrom(this.reservations.create(payload));
+        console.log('[CartPage] reserva creada (user):', res);
+
+        // 1) Vaciar carro
+        this.cart.clear();
+
+        // 2) Ir a la vista adecuada
+        const target = userRole === 'admin' ? '/admin/pedidos' : '/perfil';
+        await this.router.navigate([target]);
+
+        return;
+      }
+
+      // ------- INVITADO -------
+      const ref = this.dialog.open<GuestReserveDialogComponent, void, GuestReserveData>(
+        GuestReserveDialogComponent,
+        { width: '420px', autoFocus: true, restoreFocus: true }
+      );
+
+      const data = await firstValueFrom(ref.afterClosed());
+      if (!data) {
+        console.log('[CartPage] invitado canceló el diálogo');
+        return;
+      }
+
+      const guestPayload: CreateGuestReservationPayload = {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        reservationDetail: reservationDetail.map(d => ({
           product: d.product,
           quantity: d.quantity,
         })),
       };
 
-      this.reservations.create(payload).subscribe({
-        next: (res) => {
-          console.log('[CartPage] reserva creada (user):', res);
+      const resGuest = await firstValueFrom(
+        this.reservations.createGuestReservation(guestPayload)
+      );
+      console.log('[CartPage] reserva creada (guest):', resGuest);
 
-          // 1) Vaciar carrito
-          this.cart.clear();
-
-          // 2) Navegar según rol
-          const target =
-            userRole === 'admin'
-              ? '/admin/pedidos'      // <-- ESTA es tu ruta real
-              : '/perfil';
-
-          this.router.navigate([target]);
-        },
-        error: (err) => {
-          console.error('[CartPage] error create', err);
-          this.showSnack(
-            err?.error?.message ?? 'No se pudo crear la reserva'
-          );
-        },
-      });
-
-      return;
+      this.cart.clear();
+      this.showSnack(`Gracias ${data.name}. Te contactaremos al correo ${data.email}.`);
+    } catch (err: any) {
+      console.error('[CartPage] error en reserve()', err);
+      this.showSnack(err?.error?.message ?? 'No se pudo crear la reserva');
+    } finally {
+      // Siempre reactivamos el botón al final
+      this.isSubmitting = false;
     }
-
-
-    // ========= INVITADO =========
-    const ref = this.dialog.open<
-      GuestReserveDialogComponent,
-      void,
-      GuestReserveData
-    >(GuestReserveDialogComponent, {
-      width: '420px',
-      autoFocus: true,
-      restoreFocus: true,
-    });
-
-    const data = await firstValueFrom(ref.afterClosed());
-    if (!data) {
-      console.log('[CartPage] invitado canceló el diálogo');
-      return;
-    }
-
-    const guestPayload: CreateGuestReservationPayload = {
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      reservationDetail: reservationDetail.map((d) => ({
-        product: d.product,
-        quantity: d.quantity,
-      })),
-    };
-
-    this.reservations.createGuestReservation(guestPayload).subscribe({
-      next: (res) => {
-        console.log('[CartPage] reserva creada (guest):', res);
-        this.cart.clear();
-        this.showSnack(
-          `Gracias ${data.name}. Te contactaremos al correo ${data.email}.`
-        );
-      },
-      error: (err) => {
-        console.error('[CartPage] error createGuest', err);
-        this.showSnack(
-          err?.error?.message ?? 'No se pudo crear la reserva como invitado'
-        );
-      },
-    });
   }
 
 }
+
