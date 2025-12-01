@@ -73,3 +73,12 @@ section > .rounded-xl {
   padding-top: 6px;
   padding-bottom: 6px;
 }
+
+:root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+}
+
+.header-safe-top {
+  /* 8px de padding + el espacio del notch/status bar si existe */
+  padding-top: calc(var(--safe-area-top) + 8px);
+}
