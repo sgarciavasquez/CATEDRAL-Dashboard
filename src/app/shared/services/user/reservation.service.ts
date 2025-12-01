@@ -36,6 +36,8 @@ interface ApiReservation {
     code?: string;
     name: string;
     imageUrl?: string;
+    // por si algún día llega como img_url en este branch
+    img_url?: string;
     price: number;
     quantity: number;
   }>;
@@ -44,7 +46,17 @@ interface ApiReservation {
 
 interface ApiReservationItem {
   _id: string;
-  product: string | { _id?: string; id?: string; code?: string; name?: string; imageUrl?: string; price?: number; };
+  product:
+    | string
+    | {
+        _id?: string;
+        id?: string;
+        code?: string;
+        name?: string;
+        imageUrl?: string;
+        img_url?: string;   
+        price?: number;
+      };
   quantity: number;
   subtotal?: number;
 }
@@ -83,37 +95,38 @@ export class ReservationService {
       .get<ApiReservation[]>(`${this.base}/user/${userId}`, { params })
       .pipe(
         tap((raw) => console.log('[ReservationsSvc] raw response:', raw)),
-        map(arr => (arr ?? []).map(this.toReservation)),
-        tap((mapped) => console.log('%c[ReservationsSvc] mapped:', 'color:#16a34a', mapped)),
+        map((arr) => (arr ?? []).map(this.toReservation)),
+        tap((mapped) =>
+          console.log('%c[ReservationsSvc] mapped:', 'color:#16a34a', mapped),
+        ),
         catchError((e) => {
           console.error('[ReservationsSvc] HTTP ERROR:', e);
           return of<Reservation[]>([]);
-        })
+        }),
       );
   }
 
   create(payload: CreateReservationPayload): Observable<Reservation> {
     console.log('%c[ReservationsSvc] create()', 'color:#0ea5e9', payload);
 
-    return this.http
-      .post<ApiReservation>(this.base, payload)
-      .pipe(
-        map(this.toReservation),
-        tap((res) => console.log('%c[ReservationsSvc] created:', 'color:#16a34a', res))
-      );
+    return this.http.post<ApiReservation>(this.base, payload).pipe(
+      map(this.toReservation),
+      tap((res) =>
+        console.log('%c[ReservationsSvc] created:', 'color:#16a34a', res),
+      ),
+    );
   }
 
   createGuestReservation(payload: CreateGuestReservationPayload): Observable<Reservation> {
     console.log('%c[ReservationsSvc] createGuestReservation()', 'color:#0ea5e9', payload);
 
-    return this.http
-      .post<ApiReservation>(`${this.base}/guest`, payload)
-      .pipe(
-        map(this.toReservation),
-        tap((res) => console.log('%c[ReservationsSvc] guest created:', 'color:#16a34a', res))
-      );
+    return this.http.post<ApiReservation>(`${this.base}/guest`, payload).pipe(
+      map(this.toReservation),
+      tap((res) =>
+        console.log('%c[ReservationsSvc] guest created:', 'color:#16a34a', res),
+      ),
+    );
   }
-
 
   private toReservation = (a: ApiReservation): Reservation => {
     const userObj = typeof a.user === 'object' ? a.user : undefined;
@@ -124,27 +137,35 @@ export class ReservationService {
       '';
 
     let items: ReservationItem[] = [];
+
     if (Array.isArray(a.items) && a.items.length) {
-      items = a.items.map(it => ({
+      items = a.items.map((it) => ({
         productId: it.productId,
         name: it.name,
-        imageUrl: it.imageUrl || 'assets/p1.png',
+        imageUrl: it.imageUrl || it.img_url || 'assets/p1.png',
         qty: Number(it.quantity ?? 0),
         price: Number(it.price ?? 0),
       }));
-    } else if (Array.isArray(a.reservationDetail)) {
-      items = a.reservationDetail.map(rd => {
-        const p = typeof rd.product === 'object' ? rd.product : undefined;
+    }
+    else if (Array.isArray(a.reservationDetail)) {
+      items = a.reservationDetail.map((rd) => {
+        const p = typeof rd.product === 'object' ? (rd.product as any) : undefined;
         const quantity = Number(rd.quantity ?? 0);
+
         const priceFromProduct = Number(p?.price ?? 0);
         const priceFromSubtotal =
-          rd.subtotal != null && quantity > 0 ? Number(rd.subtotal) / quantity : 0;
+          rd.subtotal != null && quantity > 0
+            ? Number(rd.subtotal) / quantity
+            : 0;
         const price = priceFromProduct || priceFromSubtotal || 0;
 
         return {
-          productId: (typeof rd.product === 'string' ? rd.product : (p?._id || p?.id)) || '',
+          productId:
+            (typeof rd.product === 'string'
+              ? rd.product
+              : p?._id || p?.id) || '',
           name: p?.name ?? '(sin nombre)',
-          imageUrl: p?.imageUrl || 'assets/p1.png',
+          imageUrl: p?.img_url || p?.imageUrl || 'assets/p1.png',
           qty: quantity,
           price,
         };

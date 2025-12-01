@@ -7,13 +7,15 @@ import { switchMap, tap, catchError } from 'rxjs/operators';
 import { of, firstValueFrom } from 'rxjs';
 import { ApiUser, UserService } from '../../shared/services/user/user.service';
 import { Reservation, ReservationService } from '../../shared/services/user/reservation.service';
-import { FooterComponent } from "../../shared/components/footer/footer";
-import { HeaderComponent } from "../../shared/components/header/header";
-import { MatIconModule } from "@angular/material/icon";
+import { FooterComponent } from '../../shared/components/footer/footer';
+import { HeaderComponent } from '../../shared/components/header/header';
+import { MatIconModule } from '@angular/material/icon';
 import { ChatApiService } from '../../shared/services/chat/chat.api.service';
 import { ChatContextService } from '../../chat/chat-context.service';
 import { StarRatingComponent } from '../../shared/components/rating/star-rating.component';
 import { RatingService } from '../../shared/services/rating/rating.service';
+import { ProductService } from '../../shared/services/productservice/product.service';
+import { UiProduct } from '../../shared/services/productservice/product.ui';
 
 @Component({
   selector: 'app-profile-page',
@@ -42,6 +44,15 @@ export class ProfilePage {
   private chatApi = inject(ChatApiService);
   private chatCtx = inject(ChatContextService);
   private ratingSvc = inject(RatingService);
+  private productSrv = inject(ProductService);
+
+  // ===== MAPAS DE IMÁGENES =====
+  /** productId -> imageUrl */
+  private productImagesById = new Map<string, string>();
+  /** code -> imageUrl */
+  private productImagesByCode = new Map<string, string>();
+  /** nombre normalizado -> imageUrl */
+  private productImagesByName = new Map<string, string>();
 
   loading = false;
   saving = false;
@@ -56,9 +67,7 @@ export class ProfilePage {
 
   /** reservas que se muestran en la UI */
   get visibleReservations(): Reservation[] {
-    return this.showAllReservations
-      ? this.reservations
-      : this.reservations.slice(0, 3);
+    return this.showAllReservations ? this.reservations : this.reservations.slice(0, 3);
   }
 
   form = this.fb.group({
@@ -70,6 +79,16 @@ export class ProfilePage {
   constructor() {
     console.log('%c[Profile] constructor', 'color:#7c3aed');
     this.load();
+  }
+
+  // ========== UTILS ==========
+
+  private norm(s: string | undefined | null): string {
+    return (s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
   }
 
   /** scroll desde el menú de la izquierda */
@@ -84,6 +103,8 @@ export class ProfilePage {
   toggleShowReservations() {
     this.showAllReservations = !this.showAllReservations;
   }
+
+  // ========== CARGA PERFIL + RESERVAS ==========
 
   private load() {
     console.log('%c[Profile] load() -> start', 'color:#2563eb');
@@ -104,7 +125,7 @@ export class ProfilePage {
 
           this.form.patchValue(
             { name: u?.name ?? '', email: u?.email ?? '', phone: u?.phone ?? '' },
-            { emitEvent: false }
+            { emitEvent: false },
           );
 
           if (wasDisabled) emailCtrl.disable({ emitEvent: false });
@@ -122,7 +143,7 @@ export class ProfilePage {
             catchError((e) => {
               console.error('[Profile] listByUser ERROR:', e);
               return of<Reservation[]>([]);
-            })
+            }),
           );
         }),
         catchError((err) => {
@@ -133,13 +154,14 @@ export class ProfilePage {
               : err?.error?.message ?? 'No se pudo cargar perfil';
           this.loading = false;
           return of<Reservation[]>([]);
-        })
+        }),
       )
       .subscribe({
         next: (res) => {
           console.log('%c[Profile] reservas recibidas:', 'color:#16a34a', res);
           this.reservations = res ?? [];
           this.loadMyRatings();
+          this.loadProductImages();
         },
         error: (e) => {
           console.error('[Profile] subscribe ERROR:', e);
@@ -190,7 +212,7 @@ export class ProfilePage {
         console.log(
           '%c[Profile] reservas con myRating aplicado',
           'color:#22c55e',
-          this.reservations
+          this.reservations,
         );
         this.cd.markForCheck();
       },
@@ -200,7 +222,101 @@ export class ProfilePage {
     });
   }
 
-  // ========= CHAT =========
+  // ========== MAPA DE PRODUCTOS / IMÁGENES ==========
+
+  /** carga productos y llena los mapas de imágenes (id, code, nombre) */
+  private loadProductImages() {
+    this.productSrv.listUi().subscribe({
+      next: (list: UiProduct[]) => {
+        const byId = new Map<string, string>();
+        const byCode = new Map<string, string>();
+        const byName = new Map<string, string>();
+
+        for (const p of list || []) {
+          const anyP: any = p;
+          const id =
+            anyP._id ||
+            anyP.id ||
+            anyP.productId;
+
+          const code: string | undefined = anyP.code;
+          const name: string | undefined = anyP.name;
+
+          const url: string =
+            anyP.imageUrl ||
+            anyP.img_url ||
+            anyP.imgUrl ||
+            anyP.image ||
+            anyP.photoUrl ||
+            '';
+
+          if (!url) continue;
+
+          if (id) byId.set(String(id), url);
+          if (code) byCode.set(String(code), url);
+          if (name) byName.set(this.norm(name), url);
+        }
+
+        this.productImagesById = byId;
+        this.productImagesByCode = byCode;
+        this.productImagesByName = byName;
+
+        console.log('[Profile] productImagesById:', Array.from(byId.entries()));
+        console.log('[Profile] productImagesByCode:', Array.from(byCode.entries()));
+        console.log('[Profile] productImagesByName:', Array.from(byName.entries()));
+        this.cd.markForCheck();
+      },
+      error: (err) => {
+        console.error('[Profile] error cargando productos para imágenes', err);
+      },
+    });
+  }
+
+  /** Devuelve la imagen de un item de reserva usando los mapas (id, code, nombre) */
+  getItemImage(it: any): string {
+    const fallback = 'assets/p1.png';
+
+    // 1) Si el item ya trae imagen directa, úsala
+    if (it.imageUrl || it.img_url || it.imgUrl) {
+      return it.imageUrl || it.img_url || it.imgUrl;
+    }
+
+    // 2) Intentar por productId
+    const productId =
+      it.productId ||
+      (it.product && ((it.product as any)._id || (it.product as any).id));
+
+    if (productId) {
+      const fromId = this.productImagesById.get(String(productId));
+      if (fromId) return fromId;
+    }
+
+    // 3) Intentar por code
+    if (it.code) {
+      const fromCode = this.productImagesByCode.get(String(it.code));
+      if (fromCode) return fromCode;
+    }
+
+    // 4) Intentar por nombre normalizado
+    if (it.name) {
+      const key = this.norm(it.name);
+      const fromName = this.productImagesByName.get(key);
+      if (fromName) return fromName;
+    }
+
+    // 5) Fallback
+    return fallback;
+  }
+
+  /** Portada de la reserva: usa el primer item */
+  getCover(r: Reservation): string {
+    const first = r?.items?.[0] as any;
+    if (!first) return 'assets/p1.png';
+    return this.getItemImage(first);
+  }
+
+  // ========== CHAT ==========
+
   private async inferAdminId(clienteId: string): Promise<string | null> {
     console.log('%c[Chat] inferAdminId() -> start', 'color:#0ea5e9', { clienteId });
 
@@ -213,15 +329,8 @@ export class ProfilePage {
       });
 
       for (const c of chats) {
-        const cId =
-          typeof c.clienteId === 'string'
-            ? c.clienteId
-            : c.clienteId?._id;
-
-        const aId =
-          typeof c.adminId === 'string'
-            ? c.adminId
-            : c.adminId?._id;
+        const cId = typeof c.clienteId === 'string' ? c.clienteId : c.clienteId?._id;
+        const aId = typeof c.adminId === 'string' ? c.adminId : c.adminId?._id;
 
         const match = cId === clienteId && !!aId;
 
@@ -231,9 +340,7 @@ export class ProfilePage {
         }
       }
 
-      console.warn(
-        '[Chat] No se pudo inferir adminId (no hay chats previos con admin).'
-      );
+      console.warn('[Chat] No se pudo inferir adminId (no hay chats previos con admin).');
       return null;
     } catch (err) {
       console.error('[Chat] listMine ERROR', err);
@@ -265,7 +372,7 @@ export class ProfilePage {
           name: it.name,
           qty: it.qty ?? it.quantity ?? 1,
           price: it.price,
-          imageUrl: it.imageUrl,
+          imageUrl: this.getItemImage(it),
         })) ?? undefined,
     };
     console.log('[Chat] preview generado:', preview);
@@ -317,19 +424,14 @@ export class ProfilePage {
       });
     } catch (e: any) {
       console.error('%c[Chat] createOrGet ERROR', 'color:#ef4444', e);
-      this.error =
-        e?.error?.message ?? 'No se pudo abrir el chat. Intenta de nuevo.';
+      this.error = e?.error?.message ?? 'No se pudo abrir el chat. Intenta de nuevo.';
     }
   }
 
-  // ========= HELPERS VARIOS =========
+  // ========== VARIOS (guardar / borrar / rating) ==========
 
   trackReservation = (_: number, r: Reservation) =>
     (r as any)._id || (r as any).id;
-
-  getCover(r: Reservation): string {
-    return r?.items?.[0]?.imageUrl || 'assets/p1.png';
-  }
 
   save() {
     if (!this.user) return;
@@ -394,7 +496,8 @@ export class ProfilePage {
       item.productId ||
       (item.product && ((item.product as any)._id || (item.product as any).id));
 
-    const userId = this.user?._id ?? (this.user as any)?.id;
+    const userId =
+      this.user?._id ?? (this.user as any)?.id;
 
     console.log('%c[Profile] onRated() RAW', 'color:#eab308', {
       reservationId,
@@ -457,7 +560,6 @@ export class ProfilePage {
 
     const currentRating =
       (it as any).myRating ?? (it as any).rating ?? 0;
-
     const alreadyRated = !!currentRating && currentRating > 0;
     return !alreadyRated;
   }

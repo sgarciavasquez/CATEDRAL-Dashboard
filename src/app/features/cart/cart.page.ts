@@ -6,18 +6,22 @@ import { firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { FooterComponent } from '../../shared/components/footer/footer';
-import { CartItem, CartService } from '../../shared/services/cartservice/cart';
-import { ReservationService, CreateReservationPayload, CreateGuestReservationPayload, } from '../../shared/services/user/reservation.service';
+import { CartItem, CartService,} from '../../shared/services/cartservice/cart';
+import { ReservationService, CreateReservationPayload, CreateGuestReservationPayload,} from '../../shared/services/user/reservation.service';
 import { UserService } from '../../shared/services/user/user.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { GuestReserveDialogComponent, GuestReserveData, } from '../cart/guest-reserve.dialog';
+import { GuestReserveDialogComponent, GuestReserveData,} from '../cart/guest-reserve.dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-cart',
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule, 
+    MatButtonModule,         
+    MatProgressSpinnerModule,   
     HeaderComponent,
     DecimalPipe,
     FooterComponent,
@@ -36,13 +40,29 @@ export class CartPage {
   private snack = inject(MatSnackBar);
 
   items$ = this.cart.items$;
-  isSubmitting = false; // <-- NUEVO
 
-  inc(it: CartItem) { this.cart.add(it.product, 1); }
-  dec(it: CartItem) { this.cart.add(it.product, -1); }
-  remove(it: CartItem) { this.cart.remove(it.product.id); }
-  clear() { this.cart.clear(); }
-  total() { return this.cart.total(); }
+  // Flag para bloquear el botón y evitar reservas duplicadas
+  isSubmitting = false;
+
+  inc(it: CartItem) {
+    this.cart.add(it.product, 1);
+  }
+
+  dec(it: CartItem) {
+    this.cart.add(it.product, -1);
+  }
+
+  remove(it: CartItem) {
+    this.cart.remove(it.product.id);
+  }
+
+  clear() {
+    this.cart.clear();
+  }
+
+  total() {
+    return this.cart.total();
+  }
 
   private showSnack(message: string) {
     this.snack.open(message, 'Entendido', {
@@ -54,7 +74,7 @@ export class CartPage {
   }
 
   async reserve() {
-    // Si ya estoy enviando, no hago nada
+    // Si ya estoy enviando, no hago nada (evita doble clic)
     if (this.isSubmitting) return;
     this.isSubmitting = true;
 
@@ -66,6 +86,7 @@ export class CartPage {
         return;
       }
 
+      // Validación de stock antes de enviar al backend
       const invalid = items.find((it) => {
         const qty = Number((it as any).quantity ?? (it as any).qty ?? 1);
         const stock = Number((it.product as any).inStock ?? 0);
@@ -73,9 +94,13 @@ export class CartPage {
       });
 
       if (invalid) {
-        const qty = Number((invalid as any).quantity ?? (invalid as any).qty ?? 1);
+        const qty = Number(
+          (invalid as any).quantity ?? (invalid as any).qty ?? 1
+        );
         const stock = Number((invalid.product as any).inStock ?? 0);
-        const name = String((invalid.product as any).name ?? 'este producto');
+        const name = String(
+          (invalid.product as any).name ?? 'este producto'
+        );
 
         let msg = '';
         if (stock <= 0) {
@@ -87,19 +112,21 @@ export class CartPage {
         return;
       }
 
+      // Mapeo al detalle que espera el backend
       const reservationDetail = items.map((it) => {
         const qty = Number((it as any).quantity ?? (it as any).qty ?? 1);
         const price = Number((it.product as any).price ?? 0);
         return {
           product: String((it.product as any).id),
           quantity: qty,
-          subtotal: price * qty,
+          subtotal: price * qty, // el back recalcula igual, pero no molesta
         };
       });
 
       let userId: string | null = null;
       let userRole: 'admin' | 'customer' | undefined;
 
+      // Intentar obtener usuario logeado
       try {
         const me = await firstValueFrom(this.userService.me());
         userId = me?._id ?? (me as any)?.id ?? null;
@@ -110,34 +137,55 @@ export class CartPage {
         }
       }
 
+      // ===== USUARIO LOGEADO =====
       if (userId) {
-        // ------- USUARIO LOGEADO -------
         const payload: CreateReservationPayload = {
           user: userId,
-          reservationDetail: reservationDetail.map(d => ({
+          reservationDetail: reservationDetail.map((d) => ({
             product: d.product,
             quantity: d.quantity,
           })),
         };
 
-        const res = await firstValueFrom(this.reservations.create(payload));
+        const res = await firstValueFrom(
+          this.reservations.create(payload)
+        );
         console.log('[CartPage] reserva creada (user):', res);
+
+        // Id de la reserva (por si luego quieres usarla en la navegación)
+        const reservationId =
+          (res as any)?._id ?? (res as any)?.id ?? undefined;
 
         // 1) Vaciar carro
         this.cart.clear();
 
-        // 2) Ir a la vista adecuada
-        const target = userRole === 'admin' ? '/admin/pedidos' : '/perfil';
-        await this.router.navigate([target]);
+        // 2) Redirigir según rol
+        if (userRole === 'admin') {
+          // Admin → listado de pedidos
+          await this.router.navigate(['/admin/pedidos'], {
+            // si quieres, puedes usar esto para resaltar
+            queryParams: reservationId
+              ? { highlight: reservationId }
+              : undefined,
+          });
+        } else {
+          // Cliente → perfil (o historial de reservas, ajusta si quieres)
+          await this.router.navigate(['/perfil']);
+        }
 
         return;
       }
 
-      // ------- INVITADO -------
-      const ref = this.dialog.open<GuestReserveDialogComponent, void, GuestReserveData>(
+      // ===== INVITADO =====
+      const ref = this.dialog.open<
         GuestReserveDialogComponent,
-        { width: '420px', autoFocus: true, restoreFocus: true }
-      );
+        void,
+        GuestReserveData
+      >(GuestReserveDialogComponent, {
+        width: '420px',
+        autoFocus: true,
+        restoreFocus: true,
+      });
 
       const data = await firstValueFrom(ref.afterClosed());
       if (!data) {
@@ -149,7 +197,7 @@ export class CartPage {
         name: data.name,
         email: data.email,
         phone: data.phone,
-        reservationDetail: reservationDetail.map(d => ({
+        reservationDetail: reservationDetail.map((d) => ({
           product: d.product,
           quantity: d.quantity,
         })),
@@ -161,15 +209,16 @@ export class CartPage {
       console.log('[CartPage] reserva creada (guest):', resGuest);
 
       this.cart.clear();
-      this.showSnack(`Gracias ${data.name}. Te contactaremos al correo ${data.email}.`);
+      this.showSnack(
+        `Gracias ${data.name}. Te contactaremos al correo ${data.email}.`
+      );
     } catch (err: any) {
       console.error('[CartPage] error en reserve()', err);
-      this.showSnack(err?.error?.message ?? 'No se pudo crear la reserva');
+      this.showSnack(
+        err?.error?.message ?? 'No se pudo crear la reserva'
+      );
     } finally {
-      // Siempre reactivamos el botón al final
       this.isSubmitting = false;
     }
   }
-
 }
-

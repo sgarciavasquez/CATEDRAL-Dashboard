@@ -1,51 +1,74 @@
 <app-header></app-header>
 <div class="min-h-screen flex flex-col">
 
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 
-<div class="bg-white text-xs py-2">
-  <div class=" text-black flex justify-center gap-6">
-    <a routerLink="/catalogo" [queryParams]="{cat:'mujer-dis'}" class="hover:underline">Perfumes de Mujer</a>
-    <a routerLink="/catalogo" [queryParams]="{cat:'hombre-dis'}" class="hover:underline">Perfumes de Hombre</a>
-    <a routerLink="/catalogo" [queryParams]="{cat:'dis'}" class="hover:underline">Perfumes de Diseñador</a>
-    <a routerLink="/catalogo" [queryParams]="{cat:'nicho'}" class="hover:underline">Perfumes de Nicho</a>
-    <a routerLink="/faq" class="hover:underline">FAQ</a>
-  </div>
-</div>
+  <nav class="bg-white text-[13px] py-2 border-b border-neutral-200">
+    <div class="max-w-6xl mx-auto px-3">
+      <div class="flex items-center justify-center gap-4 overflow-x-auto no-scrollbar">
+        <a routerLink="/catalogo" [queryParams]="{cat:'mujer'}"
+          class="px-2 pb-1 whitespace-nowrap hover:text-[#2f3f56] transition-colors">
+          Perfumes de Mujer
+        </a>
 
-<!-- Carrusel -->
-<app-hero-carousel></app-hero-carousel>
+        <a routerLink="/catalogo" [queryParams]="{cat:'hombre'}"
+          class="px-2 pb-1 whitespace-nowrap hover:text-[#2f3f56] transition-colors">
+          Perfumes de Hombre
+        </a>
 
-<!-- Categorías rápidas -->
-<app-category-pills></app-category-pills>
+        <a routerLink="/catalogo" [queryParams]="{cat:'disenador'}"
+          class="px-2 pb-1 whitespace-nowrap hover:text-[#2f3f56] transition-colors">
+          Perfumes de Diseñador
+        </a>
 
-<!-- Más vendidos -->
-<main>
-  <section class="container-7xl py-8">
-    <h2 class="text-xl font-semibold text-center mb-6 border-b border-stone-200 pb-2">
-      Perfumes Populares
-    </h2>
+        <a routerLink="/catalogo" [queryParams]="{cat:'nicho'}"
+          class="px-2 pb-1 whitespace-nowrap hover:text-[#2f3f56] transition-colors">
+          Perfumes de Nicho
+        </a>
 
-    <div *ngIf="loading" class="text-center text-sm text-neutral-500 py-6">
-      Cargando productos…
+        <span class="mx-2 h-5 w-px bg-neutral-200 hidden sm:inline-block"></span>
+
+        <a routerLink="/faq" class="px-2 pb-1 whitespace-nowrap hover:text-[#2f3f56] transition-colors">
+          FAQ
+        </a>
+      </div>
     </div>
-    <div *ngIf="!loading && error" class="text-center text-sm text-red-600 py-6">
-      {{ error }}
-    </div>
-
-    <div *ngIf="!loading && !error" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
-      <app-product-card *ngFor="let p of bestSellers" [product]="p"></app-product-card>
-    </div>
+  </nav>
 
 
-    <div class="mt-8 flex justify-center">
-      <a routerLink="/catalogo" class="rounded-full px-6 py-2 bg-[#2f3f56] text-white hover:bg-[#223149] transition">
-        Ver más
-      </a>
-    </div>
-  </section>
-</main>
+  <!-- Carrusel -->
+  <app-hero-carousel></app-hero-carousel>
 
-<app-footer class="mt-auto"></app-footer>
+  <!-- Categorías rápidas -->
+  <app-category-pills></app-category-pills>
+
+  <!-- Más vendidos -->
+  <main>
+    <section class="container-7xl py-8">
+      <h2 class="text-xl font-semibold text-center mb-6 border-b border-stone-200 pb-2">
+        Perfumes Populares
+      </h2>
+
+      <div *ngIf="loading" class="text-center text-sm text-neutral-500 py-6">
+        Cargando productos…
+      </div>
+      <div *ngIf="!loading && error" class="text-center text-sm text-red-600 py-6">
+        {{ error }}
+      </div>
+
+      <div *ngIf="!loading && !error" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
+        <app-product-card *ngFor="let p of bestSellers" [product]="p"></app-product-card>
+      </div>
+
+
+      <div class="mt-8 flex justify-center">
+        <a routerLink="/catalogo" class="rounded-full px-6 py-2 bg-[#2f3f56] text-white hover:bg-[#223149] transition">
+          Ver más
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <app-footer class="mt-auto"></app-footer>
 </div>

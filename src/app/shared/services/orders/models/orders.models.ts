@@ -33,10 +33,11 @@ export interface ApiReservation {
   }>;
 
   total?: number;
+  wasReopened?: boolean;
 }
 
 export interface UiOrderItem {
-  productId?: string;    
+  productId?: string;
   code?: string;
   name: string;
   imageUrl: string;
@@ -48,7 +49,7 @@ export interface UiOrderItem {
 export interface UiReservation {
   id: string;
   code: string;
-  customerId?: string;   
+  customerId?: string;
   customerName: string;
   customerEmail?: string;
   customerPhone?: string;
@@ -58,6 +59,7 @@ export interface UiReservation {
   items: UiOrderItem[];
   total: number;
   chatId?: string | string[];
+  wasReopened?: boolean;
 }
 
 export function toUiReservation(a: ApiReservation): UiReservation {
@@ -97,17 +99,29 @@ export function toUiReservation(a: ApiReservation): UiReservation {
   } else if (Array.isArray(a.reservationDetail)) {
     items = (a.reservationDetail ?? []).map(rd => {
       const p = rd.product as any;
-      const productId = typeof rd.product === 'string' ? rd.product : (p?._id ?? p?.id ?? '');
+      const productId =
+        typeof rd.product === 'string'
+          ? rd.product
+          : (p?._id ?? p?.id ?? '');
+
       const quantity = Number(rd.quantity ?? 0);
       const priceFromProduct = Number(p?.price ?? 0);
-      const priceFromSubtotal = (rd.subtotal != null && quantity > 0) ? Number(rd.subtotal) / quantity : 0;
+      const priceFromSubtotal =
+        rd.subtotal != null && quantity > 0
+          ? Number(rd.subtotal) / quantity
+          : 0;
       const price = priceFromProduct || priceFromSubtotal || 0;
+
+      const img =
+        typeof rd.product === 'object' && p?.img_url
+          ? p.img_url
+          : 'assets/p1.png';
 
       return {
         productId: productId || undefined,
         code: typeof rd.product === 'object' ? (p?.code ?? undefined) : undefined,
         name: typeof rd.product === 'object' ? (p?.name ?? '(sin nombre)') : '(producto)',
-        imageUrl: typeof rd.product === 'object' ? (p?.imageUrl || 'assets/p1.png') : 'assets/p1.png',
+        imageUrl: img,
         quantity,
         price,
         lineTotal: Math.max(0, quantity * price),

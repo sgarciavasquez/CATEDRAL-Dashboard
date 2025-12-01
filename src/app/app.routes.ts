@@ -11,6 +11,7 @@ import { authGuard } from './shared/services/authservice/auth.guard';
 import { ProductsAdminPage } from './features/home/admin/products/products.admin.pages';
 import { ChatInboxComponent } from './chat/chat-inbox.component';
 import { ChatThreadComponent } from './chat/chat-thread.component';
+import { FaqPage } from './features/FAQ/faq.page';
 
 export const routes: Routes = [
   // HOME
@@ -18,6 +19,8 @@ export const routes: Routes = [
 
   // PÚBLICAS
   { path: 'cart', component: CartPage, title: 'Carro' },
+
+  { path: 'faq', component: FaqPage, title: 'Preguntas Frecuentes' },
 
   {
     path: 'catalogo',
