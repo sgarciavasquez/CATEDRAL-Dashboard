@@ -15,6 +15,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   slides: Slide[] = [
     { src: 'assets/carrito-1.jpg', alt: 'Catedral Perfumes banner 1' },
     { src: 'assets/carrito-2.jpg', alt: 'Catedral Perfumes banner 2' },
+    { src: 'assets/carrito-3.jpg', alt: 'Catedral Perfumes banner 3' },
   ];
 
   current = 0;
@@ -23,7 +24,6 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   isHover = false;
 
   ngOnInit(): void {
-    // ✅ Solo en navegador (evita colgar SSR)
     if (isPlatformBrowser(this.platformId)) {
       this.start();
     }

@@ -1,54 +1,40 @@
 <section class="bg-[#d8e7f2] py-6 select-none" role="region" aria-label="Catedral Perfumes - Carrusel">
   <div class="container-7xl">
-    <div
-      class="relative overflow-hidden rounded-2xl bg-white w-full h-44 sm:h-56 md:h-72 lg:h-80 shadow-sm"
-      (mouseenter)="onMouse(true)"
-      (mouseleave)="onMouse(false)"
-    >
+    <div class="relative w-full overflow-hidden rounded-2xl shadow-sm
+             bg-[#0f1827]  /* color de fondo por si tarda la imagen */
+             aspect-[16/5]" (mouseenter)="onMouse(true)" (mouseleave)="onMouse(false)">
       <!-- Slides -->
       <ng-container *ngFor="let s of slides; let i = index">
-        <img
-          *ngIf="current === i"
-          [src]="s.src"
-          [alt]="s.alt"
-          class="absolute inset-0 h-full w-full object-cover"
-          width="1792"
-          height="768"
-        />
+        <img *ngIf="current === i" [src]="s.src" [alt]="s.alt"
+          class="absolute inset-0 h-full w-full object-cover object-center" width="1920" height="600" />
       </ng-container>
 
-      <!-- Gradient overlay -->
-      <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/5 via-transparent"></div>
+      <!-- overlay suave arriba/abajo -->
+      <div class="pointer-events-none absolute inset-0
+               bg-gradient-to-t from-black/10 via-transparent"></div>
 
       <!-- Controles -->
-      <button
-        type="button"
-        (click)="prev()"
-        class="absolute left-2 top-1/2 -translate-y-1/2 grid place-items-center h-9 w-9 rounded-full
-               bg-white/80 hover:bg-white shadow"
-        aria-label="Anterior">
+      <button type="button" (click)="prev()" class="absolute left-2 top-1/2 -translate-y-1/2 grid place-items-center
+               h-8 w-8 rounded-full bg-white/85 hover:bg-white shadow
+               text-sm font-semibold" aria-label="Anterior">
         ‹
       </button>
 
-      <button
-        type="button"
-        (click)="next()"
-        class="absolute right-2 top-1/2 -translate-y-1/2 grid place-items-center h-9 w-9 rounded-full
-               bg-white/80 hover:bg-white shadow"
-        aria-label="Siguiente">
+      <button type="button" (click)="next()" class="absolute right-2 top-1/2 -translate-y-1/2 grid place-items-center
+               h-8 w-8 rounded-full bg-white/85 hover:bg-white shadow
+               text-sm font-semibold" aria-label="Siguiente">
         ›
       </button>
 
       <!-- Bullets -->
       <div class="absolute bottom-2 left-0 right-0 flex items-center justify-center gap-2">
-        <button
-          type="button"
-          *ngFor="let s of slides; let i = index"
-          (click)="goTo(i)"
-          [attr.aria-label]="'Ir al slide ' + (i + 1)"
-          [ngClass]="current === i ? 'bg-white' : 'bg-white/50'"
-          class="h-2.5 w-2.5 rounded-full transition">
-        </button>
+        <button type="button" *ngFor="let s of slides; let i = index" (click)="goTo(i)"
+          [attr.aria-label]="'Ir al slide ' + (i + 1)" class="h-2.5 w-2.5 rounded-full transition
+                 border border-white/70" [ngClass]="
+            current === i
+              ? 'bg-white'
+              : 'bg-white/50 hover:bg-white/80'
+          "></button>
       </div>
     </div>
   </div>
