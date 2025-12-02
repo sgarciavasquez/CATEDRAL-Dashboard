@@ -8,6 +8,8 @@ import { HeaderComponent } from '../../../../shared/components/header/header';
 import { FooterComponent } from '../../../../shared/components/footer/footer';
 import { FormsModule } from '@angular/forms';
 import { AdminSidebarComponent } from '../../../../shared/components/sidebar/admin-sidebar.component';
+import { ChatContextService, ReservationPreview   } from '../../../../chat/chat-context.service'; 
+
 
 @Component({
   selector: 'app-admin-orders',
@@ -25,6 +27,7 @@ import { AdminSidebarComponent } from '../../../../shared/components/sidebar/adm
 export class AdminOrdersPage implements OnInit, OnDestroy {
   private orders = inject(OrdersService);
   private router = inject(Router);
+  private chatCtx = inject(ChatContextService);
 
   loading = true;
   error = '';
@@ -161,11 +164,33 @@ export class AdminOrdersPage implements OnInit, OnDestroy {
     }[st];
   }
 
-  goToChat(chatId: string | string[]): void {
-    const id = Array.isArray(chatId) ? chatId[0] : chatId;
-    if (!id) return;
-    this.router.navigate(['/admin/chat', id]);
-  }
+  goToChat(o: UiReservation): void {
+  const chatId = Array.isArray(o.chatId) ? o.chatId[0] : o.chatId;
+  if (!chatId) return;
+
+  // Armamos un preview con el estado *actual* del pedido
+  const preview: ReservationPreview = {
+    reservationId: o.id,
+    createdAt: o.createdAt,
+    total: o.total,
+    status: (o.status ?? 'pending').toUpperCase() as any,
+    items: (o.items || []).map(it => ({
+      name: it.name,
+      qty: it.quantity,
+      price: it.price,
+      imageUrl: it.imageUrl,
+    })),
+  };
+
+  // Guardamos en el contexto del chat para que ChatThread lo use
+  this.chatCtx.set(chatId, preview);
+
+  // También lo pasamos por state por si acaso
+  this.router.navigate(['/admin/chat', chatId], {
+    state: { reservationPreview: preview },
+  });
+}
+
 
   reopen(o: UiReservation): void {
     const prev = o.status;

@@ -151,9 +151,10 @@
                     </button>
 
                     <button *ngIf="o.chatId" type="button" class="px-3 py-1 text-[11px] rounded-full border border-[#dfe6f6]
-               text-[#2f3f56] hover:bg-[#f5f7fb]" (click)="goToChat(o.chatId)">
+               text-[#2f3f56] hover:bg-[#f5f7fb]" (click)="goToChat(o)">
                       Ver chat
                     </button>
+
                   </div>
                 </div>
               </div>
@@ -266,9 +267,10 @@
 
             <button *ngIf="o.chatId" type="button"
               class="w-full px-3 py-1 text-xs rounded-full border border-[#dfe6f6] text-[#2f3f56] hover:bg-[#f5f7fb]"
-              (click)="goToChat(o.chatId)">
+              (click)="goToChat(o)">
               Ver chat
             </button>
+
           </div>
 
           <!-- Detalle de ítems -->

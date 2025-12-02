@@ -1,12 +1,18 @@
 // chat-context.service.ts
 import { Injectable, signal } from '@angular/core';
 
+
 export interface ReservationPreview {
   reservationId: string;
-  createdAt?: string;
+  createdAt: string | Date;  
   total?: number;
-  status?: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
-  items?: Array<{ name: string; qty: number; price: number; imageUrl?: string }>;
+  status?: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | string;
+  items?: {
+    name: string;
+    qty: number;
+    price: number;
+    imageUrl?: string;
+  }[];
 }
 
 @Injectable({ providedIn: 'root' })
