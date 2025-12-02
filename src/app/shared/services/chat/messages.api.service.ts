@@ -16,9 +16,7 @@ export class MessagesApiService {
 
     let params = new HttpParams().set('limit', String(lim));
     if (opts?.before) params = params.set('before', opts.before);
-
-    console.log('[chat] API list ->', { chatId, limit: lim, before: opts?.before });
-
+    
     return this.http
       .get<{ ok: boolean; data: ApiMessage[] }>(
         `${this.base}/chats/${chatId}/messages`,

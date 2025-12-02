@@ -71,9 +71,6 @@ export function getOtherParticipantName(chat: ApiChat, myId: string): string {
 
   const cliente = chat.clienteId as any;
   const admin   = chat.adminId as any;
-
-  console.log('[chat.types] getOtherParticipantName()', { chatId: chat._id, myId, cliente, admin });
-
   if (cliente && typeof cliente === 'object' && cliente._id && cliente._id !== myId) {
     return cliente.name || cliente.email || '';
   }
