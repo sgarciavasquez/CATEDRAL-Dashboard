@@ -7,20 +7,17 @@
       <!-- NAV MOBILE (pills arriba) -->
       <div class="lg:hidden sticky top-[56px] z-20 bg-[#f7f9fc] pb-3">
         <div class="flex gap-2 overflow-x-auto px-1 no-scrollbar text-xs">
-          <button
-            type="button"
+          <button type="button"
             class="flex-1 min-w-[120px] whitespace-nowrap rounded-full bg-white px-3 py-2 shadow-sm border border-stone-200 text-[11px] font-medium text-stone-700"
             (click)="scrollTo('datos')">
             Datos personales
           </button>
-          <button
-            type="button"
+          <button type="button"
             class="flex-1 min-w-[140px] whitespace-nowrap rounded-full bg-white px-3 py-2 shadow-sm border border-stone-200 text-[11px] font-medium text-stone-700"
             (click)="scrollTo('reservas')">
             Historial de pedidos
           </button>
-          <button
-            type="button"
+          <button type="button"
             class="flex-1 min-w-[130px] whitespace-nowrap rounded-full bg-red-50 px-3 py-2 shadow-sm border border-red-100 text-[11px] font-medium text-red-600"
             (click)="scrollTo('eliminar')">
             Eliminar cuenta
@@ -35,24 +32,21 @@
           <nav class="bg-white rounded-xl p-4 shadow-sm ring-1 ring-stone-200/70">
             <ul class="space-y-1.5 text-sm">
               <li>
-                <button
-                  type="button"
+                <button type="button"
                   class="w-full text-left px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-700 text-[13px]"
                   (click)="scrollTo('datos')">
                   Datos personales
                 </button>
               </li>
               <li>
-                <button
-                  type="button"
+                <button type="button"
                   class="w-full text-left px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-700 text-[13px]"
                   (click)="scrollTo('reservas')">
                   Historial de pedidos
                 </button>
               </li>
               <li>
-                <button
-                  type="button"
+                <button type="button"
                   class="w-full text-left px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 text-[13px]"
                   (click)="scrollTo('eliminar')">
                   Eliminar cuenta
@@ -66,9 +60,7 @@
         <section class="col-span-4 lg:col-span-3 space-y-6">
 
           <!-- DATOS PERSONALES -->
-          <div
-            id="datos"
-            class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm ring-1 ring-stone-200/70">
+          <div id="datos" class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm ring-1 ring-stone-200/70">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
                 <h2 class="text-base sm:text-lg font-semibold text-stone-900">
@@ -83,18 +75,13 @@
               </div>
             </div>
 
-            <form
-              class="mt-4 grid gap-3 sm:gap-4 sm:grid-cols-2"
-              (ngSubmit)="save()"
-              [formGroup]="form">
+            <form class="mt-4 grid gap-3 sm:gap-4 sm:grid-cols-2" (ngSubmit)="save()" [formGroup]="form">
 
               <div class="col-span-2 sm:col-span-1">
                 <label class="block text-[11px] font-medium text-neutral-600 mb-1">
                   Nombre
                 </label>
-                <input
-                  type="text"
-                  autocomplete="name"
+                <input type="text" autocomplete="name"
                   class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#2f3f56]/20 focus:border-[#2f3f56]"
                   formControlName="name" />
               </div>
@@ -103,10 +90,7 @@
                 <label class="block text-[11px] font-medium text-neutral-600 mb-1">
                   Celular
                 </label>
-                <input
-                  type="tel"
-                  autocomplete="tel"
-                  inputmode="tel"
+                <input type="tel" autocomplete="tel" inputmode="tel"
                   class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#2f3f56]/20 focus:border-[#2f3f56]"
                   formControlName="phone" />
               </div>
@@ -115,19 +99,15 @@
                 <label class="block text-[11px] font-medium text-neutral-600 mb-1">
                   Correo
                 </label>
-                <input
-                  type="email"
-                  autocomplete="email"
+                <input type="email" autocomplete="email"
                   class="w-full rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-neutral-500 cursor-not-allowed"
-                  formControlName="email"
-                  readonly />
+                  formControlName="email" readonly />
               </div>
 
               <div class="col-span-2 flex flex-col sm:flex-row gap-2 sm:gap-3 items-start sm:items-center mt-2">
                 <button
                   class="inline-flex items-center justify-center rounded-full bg-[#2f3f56] text-white px-5 py-2 text-sm font-medium hover:bg-[#223149] disabled:opacity-60 disabled:cursor-not-allowed"
-                  type="submit"
-                  [disabled]="saving">
+                  type="submit" [disabled]="saving">
                   {{ saving ? 'Guardando...' : 'Guardar cambios' }}
                 </button>
                 <p *ngIf="okMsg" class="text-xs sm:text-sm text-green-600">
@@ -141,9 +121,7 @@
           </div>
 
           <!-- RESERVAS -->
-          <div
-            id="reservas"
-            class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm ring-1 ring-stone-200/70">
+          <div id="reservas" class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm ring-1 ring-stone-200/70">
             <div class="flex items-center justify-between mb-3 sm:mb-4">
               <h3 class="text-base sm:text-lg font-semibold text-stone-900">
                 Mis reservas
@@ -153,20 +131,15 @@
               </div>
             </div>
 
-            <div
-              *ngIf="!loading && reservations.length === 0"
-              class="text-sm text-neutral-600">
+            <div *ngIf="!loading && reservations.length === 0" class="text-sm text-neutral-600">
               No tienes reservas.
             </div>
 
             <div class="space-y-3 sm:space-y-4">
-              <article
-                *ngFor="let r of visibleReservations; trackBy: trackReservation"
+              <article *ngFor="let r of visibleReservations; trackBy: trackReservation"
                 class="border border-stone-200/80 rounded-xl p-3 sm:p-4 bg-white shadow-xs">
                 <div class="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
-                  <img
-                    [src]="getCover(r)"
-                    alt=""
+                  <img [src]="getCover(r)" alt=""
                     class="w-full max-w-[96px] h-24 sm:h-20 object-cover rounded-lg mx-auto sm:mx-0" />
 
                   <div class="flex-1 min-w-0">
@@ -181,8 +154,7 @@
 
                     <!-- Items -->
                     <div class="text-sm mt-2 space-y-1.5">
-                      <div
-                        *ngFor="let it of r.items"
+                      <div *ngFor="let it of r.items"
                         class="flex flex-col gap-1 border-b last:border-b-0 border-stone-100 pb-1.5 last:pb-0">
                         <div class="flex justify-between items-center gap-2">
                           <div class="text-sm leading-snug">
@@ -199,12 +171,8 @@
 
                         <!-- Rating -->
                         <ng-container *ngIf="canShowRating(r)">
-                          <app-star-rating
-                            class="mt-0.5"
-                            [value]="getRating(it)"
-                            [readOnly]="!canRate(r, it)"
-                            [showNumber]="false"
-                            (valueChange)="onRated(r, it, $event)">
+                          <app-star-rating class="mt-0.5" [value]="getRating(it)" [readOnly]="!canRate(r, it)"
+                            [showNumber]="false" (valueChange)="onRated(r, it, $event)">
                           </app-star-rating>
                         </ng-container>
                       </div>
@@ -218,8 +186,7 @@
                       </div>
 
                       <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                        <button
-                          type="button"
+                        <button type="button"
                           class="inline-flex items-center justify-center sm:justify-start gap-2 rounded-full border border-stone-300 px-3 py-1.5 text-xs sm:text-sm text-stone-800 hover:bg-stone-50 w-full sm:w-auto"
                           (click)="openChat(r)">
                           <mat-icon class="!text-[18px]">chat_bubble</mat-icon>
@@ -240,16 +207,12 @@
             </div>
 
             <!-- VER MÁS / VER MENOS -->
-            <div
-              *ngIf="reservations.length > 3"
-              class="flex justify-center mt-4">
-              <button
-                type="button"
+            <div *ngIf="reservations.length > 3" class="flex justify-center mt-4">
+              <button type="button"
                 class="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm rounded-full border border-stone-300 bg-white hover:bg-stone-50"
                 (click)="toggleShowReservations()">
                 {{ showAllReservations ? 'Ver menos' : 'Ver más' }}
-                <mat-icon
-                  class="!text-[18px] transition-transform duration-200"
+                <mat-icon class="!text-[18px] transition-transform duration-200"
                   [ngClass]="{ 'rotate-180': showAllReservations }">
                   expand_more
                 </mat-icon>
@@ -258,9 +221,7 @@
           </div>
 
           <!-- ELIMINAR CUENTA -->
-          <div
-            id="eliminar"
-            class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm ring-1 ring-red-100/70">
+          <div id="eliminar" class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm ring-1 ring-red-100/70">
             <h4 class="text-base sm:text-lg font-semibold text-stone-900">
               Eliminar cuenta
             </h4>
@@ -270,12 +231,14 @@
               por nuestros canales de soporte.
             </p>
             <div class="mt-4">
-              <button
-                class="inline-flex items-center justify-center bg-red-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-red-700">
+              <button type="button"
+                class="inline-flex items-center justify-center bg-red-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-red-700"
+                (click)="deleteAccount()">
                 Eliminar cuenta
               </button>
             </div>
           </div>
+
         </section>
       </div>
     </section>
