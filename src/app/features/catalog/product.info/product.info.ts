@@ -32,6 +32,7 @@ export class ProductInfo implements OnInit {
     });
   }
 
+
   dec() { if (this.qty > 1) this.qty--; }
   inc() { if (!this.p) return; this.qty++; }
 

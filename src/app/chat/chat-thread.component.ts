@@ -1,13 +1,11 @@
 // chat-thread.component.ts
-import { Component, inject, signal, computed, effect, ViewChild, ElementRef, OnDestroy, } from '@angular/core';
+import { Component, inject, signal, computed, effect, ViewChild, ElementRef, OnDestroy,} from '@angular/core';
 import { CommonModule, NgIf, NgFor } from '@angular/common';
 import { interval, Subscription } from 'rxjs';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-
 import { OrdersService } from '../shared/services/orders/orders.service';
 import { ChatContextService, ReservationPreview } from './chat-context.service';
-
 import { FooterComponent } from '../shared/components/footer/footer';
 import { HeaderComponent } from '../shared/components/header/header';
 import { UserService, ApiUser } from '../shared/services/user/user.service';
@@ -27,9 +25,7 @@ import { ChatStoreService } from './chat.store.service';
   ],
   templateUrl: './chat-thread.component.html',
 })
-
 export class ChatThreadComponent implements OnDestroy {
-
   private pollSub?: Subscription;
   private store = inject(ChatStoreService);
   private route = inject(ActivatedRoute);
@@ -41,8 +37,12 @@ export class ChatThreadComponent implements OnDestroy {
   reservationClosed = false;
   chatClosed = false;
 
+  // referencia al final de la lista de mensajes
   @ViewChild('endRef') endRef?: ElementRef<HTMLDivElement>;
 
+  // control de autoscroll
+  private lastLen = 0;
+  private autoScroll = true;
 
   me = this.store.currentUser;
   chatId = this.route.snapshot.paramMap.get('id')!;
@@ -102,7 +102,10 @@ export class ChatThreadComponent implements OnDestroy {
     if (!this.reservationPreview) {
       const st = (history as any)?.state ?? {};
       if (st?.reservationPreview) {
-        console.log('[ChatThread] preview desde history.state:', st.reservationPreview);
+        console.log(
+          '[ChatThread] preview desde history.state:',
+          st.reservationPreview
+        );
         this.applyPreview(st.reservationPreview as ReservationPreview);
       }
     }
@@ -115,14 +118,23 @@ export class ChatThreadComponent implements OnDestroy {
       this.chatCtx.set(this.chatId, this.reservationPreview);
     }
 
+    // efecto para autoscroll solo cuando cambia la cantidad de mensajes
     effect(() => {
-      const _ = this.msgs();
-      queueMicrotask(() => this.scrollToEnd());
+      const list = this.msgs();
+      const len = list.length;
+
+      const shouldScroll =
+        this.autoScroll && len !== this.lastLen && len > 0;
+
+      this.lastLen = len;
+
+      if (shouldScroll) {
+        queueMicrotask(() => this.scrollToEnd());
+      }
     });
 
     this.startPolling();
   }
-
 
   private startPolling() {
     this.pollSub?.unsubscribe();
@@ -134,7 +146,6 @@ export class ChatThreadComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.pollSub?.unsubscribe();
   }
-
 
   private loadPreviewByChatId() {
     console.log('[ChatThread] loadPreviewByChatId ->', this.chatId);
@@ -176,7 +187,7 @@ export class ChatThreadComponent implements OnDestroy {
 
   send() {
     const text = this.draft().trim();
-    if (!text || this.chatClosed) {   // 👈 respeta el flag
+    if (!text || this.chatClosed) {
       if (this.chatClosed) {
         console.warn('[ChatThread] send bloqueado: chat cerrado');
       }
@@ -185,23 +196,47 @@ export class ChatThreadComponent implements OnDestroy {
 
     this.store.send(this.chatId, text);
     this.draft.set('');
-    queueMicrotask(() => this.scrollToEnd());
+
+    // después de enviar, forzamos autoscroll al fondo
+    this.autoScroll = true;
+    queueMicrotask(() => this.scrollToEnd(true));
   }
 
   onScroll(e: Event) {
     const el = e.target as HTMLElement;
+
+    // si llega arriba, cargamos más mensajes antiguos
     if (el.scrollTop === 0) {
       this.store.loadMore(this.chatId);
     }
+
+    // calculamos qué tan lejos del final está
+    const distanceFromBottom =
+      el.scrollHeight - el.scrollTop - el.clientHeight;
+
+    // si está cerca del final (por ejemplo a menos de 80px), mantenemos autoscroll
+    this.autoScroll = distanceFromBottom < 80;
   }
 
-  private scrollToEnd() {
+  private scrollToEnd(smooth = false) {
     try {
-      this.endRef?.nativeElement?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'end',
-      });
-    } catch { }
+      // usamos el contenedor scrollable (padre del endRef)
+      const box = this.endRef?.nativeElement?.parentElement as
+        | HTMLElement
+        | null;
+
+      if (!box) return;
+
+      const top = box.scrollHeight;
+
+      if (smooth) {
+        box.scrollTo({ top, behavior: 'smooth' });
+      } else {
+        box.scrollTop = top;
+      }
+    } catch {
+      // ignorar errores de scroll
+    }
   }
 
   onEnter(ev: any) {
@@ -209,6 +244,4 @@ export class ChatThreadComponent implements OnDestroy {
     ev.preventDefault();
     this.send();
   }
-
-
 }
