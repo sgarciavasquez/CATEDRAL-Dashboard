@@ -41,6 +41,7 @@
     "@capacitor/android": "^7.4.4",
     "@capacitor/cli": "^7.4.4",
     "@capacitor/core": "^7.4.4",
+    "@capacitor/push-notifications": "^7.0.3",
     "chart.js": "^4.5.1",
     "express": "^5.1.0",
     "lucide-angular": "^0.545.0",
