@@ -40,14 +40,9 @@ export class ChatInboxComponent {
         const role: Role = (u?.role === 'admin') ? 'admin' : 'cliente';
         const id = u?._id ?? (u as any)?.id ?? '';
         this.svc.setCurrentUser({ id, name: u?.name ?? 'Yo', role });
-
-        // 2) cargar inbox para mi rol
-        console.log('%c[ChatInbox] loadInbox() start', 'color:#2563eb', { role: this.role });
         this.svc.loadInbox(this.role).then(() => {
-          console.log('%c[ChatInbox] loadInbox() OK', 'color:#22c55e');
           this.loading = false;
         }).catch(err => {
-          console.error('[ChatInbox] loadInbox() ERROR', err);
           this.loading = false;
           this.error = err?.error?.message ?? 'No se pudo cargar tus chats';
         });

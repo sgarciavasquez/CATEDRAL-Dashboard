@@ -80,7 +80,6 @@ export class ChatStoreService {
 
 
   async loadInbox(roleHint?: 'cliente' | 'admin') {
-    console.log('[chat.store] loadInbox', { roleHint });
     const res = await firstValueFrom(this.chatsApi.listMine(roleHint));
     const rows = (res.data ?? []).map((c: ApiChat) => this.toRow(c));
     console.log('[chat.store] inbox rows:', rows);
